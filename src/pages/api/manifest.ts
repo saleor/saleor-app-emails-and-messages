@@ -10,6 +10,7 @@ export default createManifestHandler({
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
       appUrl: context.appBaseUrl,
       permissions: [
+        "MANAGE_ORDERS",
         /**
          * Set permissions for app if needed
          * https://docs.saleor.io/docs/3.x/developer/permissions
@@ -18,6 +19,12 @@ export default createManifestHandler({
       id: "saleor.app",
       version: packageJson.version,
       webhooks: [
+        {
+          name: "Order created",
+          targetUrl: `${context.appBaseUrl}/api/webhooks/order-created`,
+          asyncEvents: ["ORDER_CREATED"],
+          query: "",
+        },
         /**
          * Configure webhooks here. They will be created in Saleor during installation
          * Read more
