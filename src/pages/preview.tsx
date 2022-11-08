@@ -5,7 +5,6 @@ import { NextPage } from "next";
 import { useEffect, useRef, useState } from "react";
 import { Navigation } from "../components/navigation";
 import { MJML_DEFAULT_TEMPLATE } from "../consts";
-import { Grid } from "@material-ui/core";
 import parseMjml from "../lib/mjmlParse";
 
 const PreviewPage: NextPage = () => {
