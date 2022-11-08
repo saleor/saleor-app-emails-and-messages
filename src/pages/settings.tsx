@@ -1,8 +1,13 @@
+import { Navigation } from "../components/navigation";
+
 const SettingsPage = () => {
   return (
-    <div>
-      <button>Send email</button>
-    </div>
+    <>
+      <Navigation />
+      <div>
+        <button>Send email</button>
+      </div>
+    </>
   );
 };
 
