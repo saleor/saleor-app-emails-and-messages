@@ -1,11 +1,15 @@
 import { Navigation } from "../components/navigation";
 
 const SettingsPage = () => {
+  const sendEmail = async () => {
+    await fetch("/api/sendEmail", { method: "POST" });
+  };
+
   return (
     <>
       <Navigation />
       <div>
-        <button>Send email</button>
+        <button onClick={sendEmail}>Send email</button>
       </div>
     </>
   );
