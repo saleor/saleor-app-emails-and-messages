@@ -1,11 +1,12 @@
-import { NextPage } from "next";
-import { Button } from "@saleor/macaw-ui";
-import { useEffect, useRef, useState } from "react";
-import Editor from "@monaco-editor/react";
-import { MJML_DEFAULT_TEMPLATE } from "../consts";
 import { Grid } from "@material-ui/core";
+import Editor from "@monaco-editor/react";
+import { Button } from "@saleor/macaw-ui";
+import { NextPage } from "next";
+import { useEffect, useRef, useState } from "react";
+import { Navigation } from "../components/navigation";
+import { MJML_DEFAULT_TEMPLATE } from "../consts";
 
-const IndexPage: NextPage = () => {
+const PreviewPage: NextPage = () => {
   const [, setMounted] = useState(false);
   const [parsedHtml, setParsedHtml] = useState("");
 
@@ -44,28 +45,31 @@ const IndexPage: NextPage = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Emailing app uwu</h1>
+    <>
+      <Navigation />
+      <div>
+        <h1>Emailing app uwu</h1>
 
-      <Grid spacing={2} container>
-        <Grid item xs={6}>
-          <Editor
-            height="60vh"
-            defaultLanguage="xml"
-            defaultValue={emailTemplate}
-            onMount={handleEditorDidMount}
-            onChange={(value) => setEmailTemplate(value!)}
-          />
-        </Grid>
+        <Grid spacing={2} container>
+          <Grid item xs={6}>
+            <Editor
+              height="60vh"
+              defaultLanguage="xml"
+              defaultValue={emailTemplate}
+              onMount={handleEditorDidMount}
+              onChange={(value) => setEmailTemplate(value!)}
+            />
+          </Grid>
 
-        <Grid item xs={6}>
-          <div>Preview</div>
-          <div dangerouslySetInnerHTML={{ __html: parsedHtml }} />
-          <Button onClick={handleSave}>Save</Button>
+          <Grid item xs={6}>
+            <div>Preview</div>
+            <div dangerouslySetInnerHTML={{ __html: parsedHtml }} />
+            <Button onClick={handleSave}>Save</Button>
+          </Grid>
         </Grid>
-      </Grid>
-    </div>
+      </div>
+    </>
   );
 };
 
-export default IndexPage;
+export default PreviewPage;
