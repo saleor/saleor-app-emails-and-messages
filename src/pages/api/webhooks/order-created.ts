@@ -4,7 +4,7 @@ import { gql } from "urql";
 import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphql";
 import { saleorApp } from "../../../../saleor-app";
 import { MJML_DEFAULT_TEMPLATE } from "../../../consts";
-import parseMjml from "../../../lib/mjmlParse";
+import mjml from "../../../lib/mjml";
 
 const OrderCreatedWebhookPayload = gql`
   fragment OrderCreatedWebhookPayload on OrderCreated {
@@ -76,10 +76,13 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
     return MJML_DEFAULT_TEMPLATE;
   };
 
+  const rawMjml = await getMjmlEmail();
+
   // TO-DO
   // Make api call to get email in mjml from metadata
-  const { rawHtml } = await parseMjml(await getMjmlEmail());
+  const rawHtml = mjml(rawMjml);
 
+  //
   console.log(rawHtml);
 
   // TO-DO
