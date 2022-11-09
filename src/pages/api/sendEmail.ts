@@ -6,18 +6,6 @@ const handler = async (request: NextApiRequest) => {
 
   const messageId = sendMail({ from, to, subject, text: textPart, html: htmlPart });
 
-  // const transporter = nodemailer.createTransport({
-  //   port: 1025,
-  // });
-
-  // const info = await transporter.sendMail({
-  //   from,
-  //   to,
-  //   subject,
-  //   text: textPart,
-  //   html: htmlPart,
-  // });
-
   console.log("Message sent: %s", messageId);
 
   return {

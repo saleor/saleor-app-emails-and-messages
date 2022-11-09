@@ -5,6 +5,8 @@ import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphq
 import { saleorApp } from "../../../../saleor-app";
 import { MJML_DEFAULT_TEMPLATE } from "../../../consts";
 import mjml from "../../../lib/mjml";
+import { sendMail } from "../../../lib/smtp";
+import { compileTemplate } from "../../../lib/template";
 
 const OrderCreatedWebhookPayload = gql`
   fragment OrderCreatedWebhookPayload on OrderCreated {
@@ -85,15 +87,27 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
   //
   console.log(rawHtml);
 
+  const { htmlTemplate, plaintextTemplate } = compileTemplate(rawHtml, {
+    order: {
+      order_details_url: "https://saleor.io",
+    },
+  });
+
   // TO-DO
   // Make api call to get email provider
 
   // Check if desired email provider is configured
   // If not DONT send error to saleor
 
-  // Send email
-  // abstraction func that receives email provider and email HTML
-  // and sends email
+  const messageId = await sendMail({
+    text: plaintextTemplate,
+    html: htmlTemplate,
+    from: "Saleor Mailing Bot <mail@saleor.io>",
+    to: "test@user.com",
+    subject: "Welcome to Saleor Mail",
+  });
+
+  console.log("Message sent: %s", messageId);
 
   // return error to saleor only if the process of email sending has failed
   // (saleor reruns the webhook if error)
