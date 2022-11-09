@@ -11,30 +11,45 @@ export const MJML_DEFAULT_TEMPLATE = `
             Hi!
         </mj-text>
         <mj-text>
-          {{#if order.order_details_url}}
-              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit:
-               <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
-          {{else}}
-              Thank you for your order. Below is the list of fulfilled products.
-          {{/if}}
-            Thank you for your order. Below is the list of fulfilled products.
-          {{#if fulfillment.tracking_number}}
-            {{#if fulfillment.is_tracking_number_url}}
-                You can track your shipment with
-                <a href="{{fulfillment.tracking_number}}">{{fulfillment.tracking_number}}</a> link.
-            {{else}}
-                You can track your shipment with {{fulfillment.tracking_number}} code.
-            {{/if}}
-          {{/if}}
-        </mj-text>
-        <mj-text>
-          {{#if digital_lines}}
-              You can download your digital products by clicking in download link(s).
-          {{/if}}
+          Thank you for your order {{ order.number}}. Below is the list of ordered products.
         </mj-text>
       </mj-column>
     </mj-section>
-    <mj-include path="./partials/_fulfillment_lines.mjml" />
+    <mj-include path="./partials/_order_lines.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-table>
+          <thead class="table-header-row">
+            <tr>
+              <th>
+                  Billing address
+              </th>
+              <th>
+                  Shipping address
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="address">
+                {{#if order.billingAddress}}
+                  {{ order.billingAddress.streetAddress1 }}
+                {{else}}
+                 No billing address
+                {{/if}}
+              </td>
+              <td css-class="address">
+                {{#if order.shippingAddress}}
+                  {{ order.shippingAddress.streetAddress1}}
+                {{else}}
+                  No shipping required
+                {{/if}}
+              </td>
+            </tr>
+          </tbody>
+        </mj-table>
+      </mj-column>
+    </mj-section>
     <mj-include path="./shared/footer.mjml" />
   </mj-body>
 </mjml>`;
