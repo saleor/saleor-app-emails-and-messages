@@ -1,4 +1,4 @@
-import { CircularProgress, Grid } from "@material-ui/core";
+import { CircularProgress, Grid, Switch } from "@material-ui/core";
 import Editor from "@monaco-editor/react";
 import { useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { SALEOR_AUTHORIZATION_BEARER_HEADER, SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
@@ -18,12 +18,20 @@ type EmailMetadataValue = {
   mjmlTemplate: string | undefined;
 };
 
-const updatedMetadata = (metadata: MetadataEntry[], entryId: string, value: string) => {
+const updatedMetadata = (
+  metadata: MetadataEntry[],
+  entryId: string,
+  value: string,
+  isActive: boolean
+) => {
   const updatedMetadata = metadata.map((metadataEntry) => {
     if (metadataEntry.key === entryId) {
       return {
         ...metadataEntry,
-        value,
+        value: JSON.stringify({
+          mjmlTemplate: value,
+          isActive,
+        } as EmailMetadataValue),
       };
     }
 
@@ -61,9 +69,6 @@ const PreviewPage: NextPage = () => {
     });
 
     const response = await res.json();
-
-    console.log({ metadata });
-
     setMetadata(response.metadata);
 
     return response.metadata;
@@ -76,10 +81,8 @@ const PreviewPage: NextPage = () => {
 
   const setMetadataIfExists = async (entryId: string) => {
     const savedMetadata = await getEventMetadata(entryId);
-
-    console.log({ savedMetadata });
-
     const value = savedMetadata?.value;
+
     const { mjmlTemplate, isActive } = JSON.parse(value) as EmailMetadataValue;
 
     setEmailTemplate(mjmlTemplate ?? MJML_DEFAULT_TEMPLATE);
@@ -91,17 +94,16 @@ const PreviewPage: NextPage = () => {
   }, []);
 
   const handleParseMjml = async () => {
-    const { rawHtml } = await parseMjml(emailTemplate!);
+    if (emailTemplate) {
+      const { rawHtml } = (await parseMjml(emailTemplate)) as { rawHtml: string };
 
-    // @ts-ignore
-    setParsedHtml(rawHtml);
+      // @ts-ignore
+      setParsedHtml(rawHtml);
+    }
   };
 
-  // function that returns metadata with updated value
-
-  const getUpdatedMetadata = () => {
-    return updatedMetadata(metadata, ORDER_CREATED_ID, emailTemplate!);
-  };
+  const getUpdatedMetadata = () =>
+    updatedMetadata(metadata, ORDER_CREATED_ID, emailTemplate!, isActive);
 
   const handleSaveToMetadata = async () => {
     setTransitionState("loading");
@@ -112,13 +114,7 @@ const PreviewPage: NextPage = () => {
         [SALEOR_DOMAIN_HEADER, appBridgeState?.domain!],
         [SALEOR_AUTHORIZATION_BEARER_HEADER, appBridgeState?.token!],
       ],
-      // @ts-ignore
-      body: [
-        {
-          key: ORDER_CREATED_ID,
-          value: { mjmlTemplate: JSON.stringify(emailTemplate), isActive } as EmailMetadataValue,
-        },
-      ],
+      body: JSON.stringify(getUpdatedMetadata()),
     })
       .then(() => {
         appBridge?.dispatch({
@@ -166,16 +162,24 @@ const PreviewPage: NextPage = () => {
           <Grid item xs={6}>
             <div>Preview</div>
             <div dangerouslySetInnerHTML={{ __html: parsedHtml }} />
-            <ConfirmButton
-              onClick={handleSaveToMetadata}
-              transitionState={transitionState}
-              labels={{
-                confirm: "Save",
-                error: "Error",
-              }}
-            >
-              Save
-            </ConfirmButton>
+            <Grid>
+              <Grid item>
+                <Switch onChange={() => setIsActive(!isActive)} value={isActive} />
+              </Grid>
+
+              <Grid item>
+                <ConfirmButton
+                  onClick={handleSaveToMetadata}
+                  transitionState={transitionState}
+                  labels={{
+                    confirm: "Save",
+                    error: "Error",
+                  }}
+                >
+                  Save
+                </ConfirmButton>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
       </div>
