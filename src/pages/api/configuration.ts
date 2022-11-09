@@ -10,6 +10,7 @@ import { saleorApp } from "../../../saleor-app";
 // shape of the data for communication. It's completely optional, but makes
 // refactoring much easier.
 export interface SettingsUpdateApiRequest {
+  isActive: boolean;
   client: string;
   mailhog?: Mailhog;
   smtp?: SMTP;
@@ -33,10 +34,10 @@ export interface SMTP {
 export interface SettingsApiResponse {
   success: boolean;
   data?: {
+    isActive: boolean;
     client: string;
     mailhog?: Mailhog;
     smtp?: SMTP;
-
   };
 }
 
@@ -45,9 +46,9 @@ export interface SettingsApiResponse {
 // Obfuscate function will hide secret value with dots, leaving only last 4
 // characters which should be enough for the user to know if thats a right value.
 const obfuscateSecret = (secret: string) => {
-  try{
+  try {
     return "*".repeat(secret.length - 4) + secret.substring(secret.length - 4);
-  }catch {
+  } catch {
     return "";
   }
 };
@@ -60,14 +61,15 @@ const sendResponse = async (
   settings: SettingsManager,
   domain: string
 ) => {
-
-  const mailhogStr = await settings.get("mailhog")
-  const mailhog = mailhogStr ? JSON.parse(mailhogStr): null;
-  const smtpStr = await settings.get("smtp")
-  const smtp = smtpStr ? JSON.parse(smtpStr): null;
+  const mailhogStr = await settings.get("mailhog");
+  const mailhog = mailhogStr ? JSON.parse(mailhogStr) : null;
+  const smtpStr = await settings.get("smtp");
+  const smtp = smtpStr ? JSON.parse(smtpStr) : null;
+  const isActive = (await settings.get("isActive")) || "false";
   res.status(statusCode).json({
     success: statusCode === 200,
     data: {
+      isActive: isActive === "true",
       client: (await settings.get("client")) || "",
       mailhog: mailhog,
       smtp: smtp,
@@ -83,7 +85,6 @@ export default async function handler(
 ) {
   const saleorDomain = req.headers[SALEOR_DOMAIN_HEADER] as string;
   const authData = await saleorApp.apl.get(saleorDomain);
-  console.log(authData);
   if (!authData) {
     console.debug(`Could not find auth data for the domain ${saleorDomain}.`);
     res.status(401).json({ success: false });
@@ -91,7 +92,7 @@ export default async function handler(
   }
 
   // To make queries to Saleor API we need urql client
-  const client = createClient(`https://${saleorDomain}/graphql/`, async () =>
+  const client = createClient(`http://${saleorDomain}/graphql/`, async () =>
     Promise.resolve({ token: authData.token })
   );
 
@@ -103,7 +104,7 @@ export default async function handler(
     await sendResponse(res, 200, settings, saleorDomain);
     return;
   } else if (req.method === "POST") {
-    const { client, mailhog, smtp } = req.body as SettingsUpdateApiRequest;
+    const { client, isActive, mailhog, smtp } = req.body as SettingsUpdateApiRequest;
 
     if (client && (mailhog || smtp)) {
       // You can set metadata one by one, but passing array of the values
@@ -114,12 +115,13 @@ export default async function handler(
       const smtpData = smtp ? JSON.stringify(smtp) : null;
       const data = [
         { key: "client", value: client },
-      ]
+        { key: "isActive", value: String(isActive) },
+      ];
       if (smtpData) {
-        data.push({key: "smtp", value: smtpData})
+        data.push({ key: "smtp", value: smtpData });
       }
       if (mailhogData) {
-        data.push({key: "mailhog", value: mailhogData})
+        data.push({ key: "mailhog", value: mailhogData });
       }
       await settings.set(data);
 
