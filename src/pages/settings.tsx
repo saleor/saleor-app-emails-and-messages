@@ -23,7 +23,7 @@ const SettingsPage = () => {
 
   const classes = useStyles();
 
-  const handleSubmit = (event: SyntheticEvent) => {
+  const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     setTransitionState("loading");
 
@@ -32,7 +32,7 @@ const SettingsPage = () => {
       client: "mailhog",
     };
 
-    fetch("/api/configuration", {
+    const response = await fetch("/api/configuration", {
       method: "POST",
       headers: [
         ["content-type", "application/json"],
@@ -40,71 +40,63 @@ const SettingsPage = () => {
         [SALEOR_AUTHORIZATION_BEARER_HEADER, appBridgeState?.token!],
       ],
       body: JSON.stringify(newSettings),
-    })
-      .then(async (response) => {
-        if (response.status === 200) {
-          setTransitionState("success");
-          const { data } = (await response.json()) as SettingsApiResponse;
+    });
 
-          if (data?.mailhog) {
-            setSMTPHost(data.mailhog.smtpHost);
-            setSMTPPort(data.mailhog.smtpPort);
-          }
-
-          // Use the dashboard notification system to show status of the operation
-          appBridge?.dispatch({
-            type: "notification",
-            payload: {
-              status: "success",
-              title: "Success",
-              text: "Settings updated successfully",
-              actionId: "submit-success",
-            },
-          });
-        } else {
-          setTransitionState("error");
-          appBridge?.dispatch({
-            type: "notification",
-            payload: {
-              status: "error",
-              title: "Error",
-              text: `Updating the settings unsuccessful. The API responded with status ${response.status}`,
-              actionId: "submit-success",
-            },
-          });
-        }
-      })
-      .catch(async () => {
-        setTransitionState("error");
-        appBridge?.dispatch({
-          type: "notification",
-          payload: {
-            status: "error",
-            title: "Configuration update failed",
-            actionId: "submit-error",
-          },
-        });
-      });
-  };
-
-  useEffect(() => {
-    setTransitionState("loading");
-    fetch("/api/configuration", {
-      method: "GET",
-      headers: [
-        ["content-type", "application/json"],
-        [SALEOR_DOMAIN_HEADER, appBridgeState?.domain!],
-        [SALEOR_AUTHORIZATION_BEARER_HEADER, appBridgeState?.token!],
-      ],
-    }).then(async (response) => {
-      setTransitionState("default");
+    if (response.status === 200) {
+      setTransitionState("success");
       const { data } = (await response.json()) as SettingsApiResponse;
 
       if (data?.mailhog) {
         setSMTPHost(data.mailhog.smtpHost);
         setSMTPPort(data.mailhog.smtpPort);
       }
-    });
+
+      appBridge?.dispatch({
+        type: "notification",
+        payload: {
+          status: "success",
+          title: "Success",
+          text: "Settings updated successfully",
+          actionId: "submit-success",
+        },
+      });
+    } else {
+      setTransitionState("error");
+      appBridge?.dispatch({
+        type: "notification",
+        payload: {
+          status: "error",
+          title: "Error",
+          text: `Updating the settings unsuccessful. The API responded with status ${response.status}`,
+          actionId: "submit-success",
+        },
+      });
+    }
+  };
+
+  useEffect(() => {
+    setTransitionState("loading");
+
+    const fetchConfiguration = async () => {
+      const response = await fetch("/api/configuration", {
+        method: "GET",
+        headers: [
+          ["content-type", "application/json"],
+          [SALEOR_DOMAIN_HEADER, appBridgeState?.domain!],
+          [SALEOR_AUTHORIZATION_BEARER_HEADER, appBridgeState?.token!],
+        ],
+      });
+
+      setTransitionState("default");
+
+      const { data } = (await response.json()) as SettingsApiResponse;
+      if (data?.mailhog) {
+        setSMTPHost(data.mailhog.smtpHost);
+        setSMTPPort(data.mailhog.smtpPort);
+      }
+    };
+
+    fetchConfiguration();
   }, [appBridgeState?.token, appBridgeState?.domain]);
 
   return (
