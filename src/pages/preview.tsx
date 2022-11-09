@@ -5,6 +5,7 @@ import { NextPage } from "next";
 import { useEffect, useRef, useState } from "react";
 import { Navigation } from "../components/navigation";
 import { MJML_DEFAULT_TEMPLATE } from "../consts";
+import parseMjml from "../lib/mjmlParse";
 
 const PreviewPage: NextPage = () => {
   const [, setMounted] = useState(false);
@@ -22,18 +23,10 @@ const PreviewPage: NextPage = () => {
   }
 
   const handleSave = async () => {
-    const xdd = await fetch("/api/parseMjml", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mjml: emailTemplate }),
-    });
-
-    const response = await xdd.json();
+    const { rawHtml } = await parseMjml(emailTemplate);
 
     // @ts-ignore
-    setParsedHtml(response.rawHtml);
+    setParsedHtml(rawHtml);
   };
 
   useEffect(() => {
