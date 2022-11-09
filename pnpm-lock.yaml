@@ -46,20 +46,10 @@ dependencies:
   '@material-ui/core': 4.12.4_rj7ozvcq3uehdlnj3cbwzbi5ce
   '@material-ui/icons': 4.11.3_3mlwvtnnvz4efep55wa5m5dc4e
   '@material-ui/lab': 4.0.0-alpha.61_3mlwvtnnvz4efep55wa5m5dc4e
-<<<<<<< HEAD
-  '@monaco-editor/react': 4.4.6_6vrjaj6ridxbohi43n7zt4gn7q
-  '@saleor/app-sdk': 0.19.0_azq6kxkn3od7qdylwkyksrwopy
-  '@saleor/macaw-ui': 0.6.5_gyeockywcq4rm6q2xgr7o2cczq
-||||||| parent of c0e5dfc (feat: add basic smtp config)
-  '@monaco-editor/react': 4.4.6_6vrjaj6ridxbohi43n7zt4gn7q
-  '@saleor/app-sdk': 0.18.0_azq6kxkn3od7qdylwkyksrwopy
-  '@saleor/macaw-ui': 0.6.5_gyeockywcq4rm6q2xgr7o2cczq
-=======
   '@monaco-editor/react': 4.4.6_biqbaboplfbrettd7655fr4n2y
-  '@saleor/app-sdk': 0.18.0_azq6kxkn3od7qdylwkyksrwopy
+  '@saleor/app-sdk': 0.19.0_azq6kxkn3od7qdylwkyksrwopy
   '@saleor/macaw-ui': 0.6.5_k2kuy4f2rkqfztjzphbs3himfi
   '@types/html-to-text': 8.1.1
->>>>>>> c0e5dfc (feat: add basic smtp config)
   '@types/lodash': 4.14.188
   '@types/mjml': 4.7.0
   '@types/nodemailer': 6.4.6
@@ -5512,19 +5502,6 @@ packages:
   /queue-microtask/1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-<<<<<<< HEAD
-  /raw-body/2.5.1:
-    resolution: {integrity: sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==}
-    engines: {node: '>= 0.8'}
-    dependencies:
-      bytes: 3.1.2
-      http-errors: 2.0.0
-      iconv-lite: 0.4.24
-      unpipe: 1.0.0
-    dev: false
-
-||||||| parent of c0e5dfc (feat: add basic smtp config)
-=======
   /railroad-diagrams/1.0.0:
     resolution: {integrity: sha512-cz93DjNeLY0idrCNOH6PviZGRN9GJhsdm9hpn1YCS879fj4W+x5IFJhhkRZcwVgMmFF7R82UA/7Oh+R8lLZg6A==}
     dev: false
@@ -5537,7 +5514,16 @@ packages:
       ret: 0.1.15
     dev: false
 
->>>>>>> c0e5dfc (feat: add basic smtp config)
+  /raw-body/2.5.1:
+    resolution: {integrity: sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==}
+    engines: {node: '>= 0.8'}
+    dependencies:
+      bytes: 3.1.2
+      http-errors: 2.0.0
+      iconv-lite: 0.4.24
+      unpipe: 1.0.0
+    dev: false
+
   /react-dom/18.2.0_react@18.2.0:
     resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
     peerDependencies:
