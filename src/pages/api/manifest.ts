@@ -17,7 +17,7 @@ export default createManifestHandler({
          * https://docs.saleor.io/docs/3.x/developer/permissions
          */
       ],
-      id: "saleor.app.xdxd",
+      id: "saleor.app.mailing",
       version: packageJson.version,
       webhooks: [orderCreatedWebhook.getWebhookManifest(context.appBaseUrl)],
       extensions: [
