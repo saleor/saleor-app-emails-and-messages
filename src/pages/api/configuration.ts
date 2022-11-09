@@ -1,16 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
 import { SettingsManager } from "@saleor/app-sdk/settings-manager";
+import type { NextApiRequest, NextApiResponse } from "next";
 
+import { saleorApp } from "../../../saleor-app";
 import { createClient } from "../../lib/graphql";
 import { createSettingsManager } from "../../lib/metadata";
-import { saleorApp } from "../../../saleor-app";
 
 // Interfaces below are shared with the client part to ensure we use the same
 // shape of the data for communication. It's completely optional, but makes
 // refactoring much easier.
 export interface SettingsUpdateApiRequest {
-  client: string;
+  client: "mailhog" | "smtp";
   mailhog?: Mailhog;
   smtp?: SMTP;
 }
@@ -36,7 +36,6 @@ export interface SettingsApiResponse {
     client: string;
     mailhog?: Mailhog;
     smtp?: SMTP;
-
   };
 }
 
@@ -45,9 +44,9 @@ export interface SettingsApiResponse {
 // Obfuscate function will hide secret value with dots, leaving only last 4
 // characters which should be enough for the user to know if thats a right value.
 const obfuscateSecret = (secret: string) => {
-  try{
+  try {
     return "*".repeat(secret.length - 4) + secret.substring(secret.length - 4);
-  }catch {
+  } catch {
     return "";
   }
 };
@@ -60,11 +59,10 @@ const sendResponse = async (
   settings: SettingsManager,
   domain: string
 ) => {
-
-  const mailhogStr = await settings.get("mailhog")
-  const mailhog = mailhogStr ? JSON.parse(mailhogStr): null;
-  const smtpStr = await settings.get("smtp")
-  const smtp = smtpStr ? JSON.parse(smtpStr): null;
+  const mailhogStr = await settings.get("mailhog");
+  const mailhog = mailhogStr ? JSON.parse(mailhogStr) : null;
+  const smtpStr = await settings.get("smtp");
+  const smtp = smtpStr ? JSON.parse(smtpStr) : null;
   res.status(statusCode).json({
     success: statusCode === 200,
     data: {
@@ -105,21 +103,19 @@ export default async function handler(
   } else if (req.method === "POST") {
     const { client, mailhog, smtp } = req.body as SettingsUpdateApiRequest;
 
-    if (client && (mailhog || smtp)) {
+    if (Boolean(client && (mailhog || smtp))) {
       // You can set metadata one by one, but passing array of the values
       // will spare additional roundtrips to the Saleor API.
       // After mutation is made, internal cache of the manager
       // will be automatically updated
       const mailhogData = mailhog ? JSON.stringify(mailhog) : null;
       const smtpData = smtp ? JSON.stringify(smtp) : null;
-      const data = [
-        { key: "client", value: client },
-      ]
+      const data = [{ key: "client", value: client }];
       if (smtpData) {
-        data.push({key: "smtp", value: smtpData})
+        data.push({ key: "smtp", value: smtpData });
       }
       if (mailhogData) {
-        data.push({key: "mailhog", value: mailhogData})
+        data.push({ key: "mailhog", value: mailhogData });
       }
       await settings.set(data);
 
