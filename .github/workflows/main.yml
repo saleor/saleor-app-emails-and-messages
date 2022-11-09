@@ -10,7 +10,7 @@ jobs:
           version: 6.19.1
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: "pnpm"
       - uses: actions/cache@v2
         with:
@@ -22,5 +22,7 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.json') }}-
       - name: Install dependencies
         run: pnpm install
+      - name: Check types
+        run: pnpm run check-types
       - name: Build project
         run: pnpm build

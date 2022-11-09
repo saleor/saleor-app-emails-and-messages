@@ -10,7 +10,7 @@ import { createSettingsManager } from "../../lib/metadata";
 // shape of the data for communication. It's completely optional, but makes
 // refactoring much easier.
 export interface SettingsUpdateApiRequest {
-  client: "mailhog" | "smtp";
+  client: string;
   mailhog?: Mailhog;
   smtp?: SMTP;
 }

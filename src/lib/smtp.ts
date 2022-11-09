@@ -1,28 +1,26 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  port: 1025,
-});
+type SendMailProps = {
+  smtpSettings: {
+    host: string;
+    port: number;
+  };
+  mailData: {
+    from: string;
+    to: string;
+    text: string;
+    html: string;
+    subject: string;
+  };
+};
 
-export const sendMail = async ({
-  from,
-  to,
-  subject,
-  text,
-  html,
-}: {
-  from: string;
-  to: string;
-  text: string;
-  html: string;
-  subject: string;
-}) => {
+export const sendMail = async ({ smtpSettings, mailData }: SendMailProps) => {
+  const transporter = nodemailer.createTransport({
+    ...smtpSettings,
+  });
+
   const response = await transporter.sendMail({
-    from,
-    to,
-    subject,
-    text,
-    html,
+    ...mailData,
   });
 
   return response.messageId;

@@ -1,4 +1,4 @@
-import compileMjml from "../../lib/mjml";
+import { compileMjml } from "../../lib/mjml";
 
 const handler = async (request: any, response: any) => {
   const { mjml } = request.body;
