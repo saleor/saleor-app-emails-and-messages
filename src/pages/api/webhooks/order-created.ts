@@ -1,9 +1,12 @@
+import { SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
 import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handlers/next";
 
 import { gql } from "urql";
 import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphql";
 import { saleorApp } from "../../../../saleor-app";
 import { MJML_DEFAULT_TEMPLATE } from "../../../consts";
+import { createClient } from "../../../lib/graphql";
+import { createSettingsManager } from "../../../lib/metadata";
 import mjml from "../../../lib/mjml";
 import { sendMail } from "../../../lib/smtp";
 import { compileTemplate } from "../../../lib/template";
@@ -70,7 +73,15 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
   res,
   context
 ) => {
+  const saleorDomain = req.headers[SALEOR_DOMAIN_HEADER] as string;
+
   const { payload, authData } = context;
+
+  const client = createClient(`https://${saleorDomain}/graphql/`, async () =>
+    Promise.resolve({ token: authData.token })
+  );
+
+  const settings = createSettingsManager(client);
 
   // fake func
   const getMjmlEmail = async () => {

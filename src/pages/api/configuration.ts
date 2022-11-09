@@ -81,7 +81,7 @@ export default async function handler(
 ) {
   const saleorDomain = req.headers[SALEOR_DOMAIN_HEADER] as string;
   const authData = await saleorApp.apl.get(saleorDomain);
-  console.log(authData);
+
   if (!authData) {
     console.debug(`Could not find auth data for the domain ${saleorDomain}.`);
     res.status(401).json({ success: false });
