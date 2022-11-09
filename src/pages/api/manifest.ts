@@ -12,6 +12,7 @@ export default createManifestHandler({
       appUrl: context.appBaseUrl,
       permissions: [
         "MANAGE_ORDERS",
+        "MANAGE_APPS",
         /**
          * Set permissions for app if needed
          * https://docs.saleor.io/docs/3.x/developer/permissions
