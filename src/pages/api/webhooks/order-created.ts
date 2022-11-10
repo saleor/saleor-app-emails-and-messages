@@ -21,6 +21,14 @@ const OrderCreatedWebhookPayload = gql`
         firstName
         lastName
       }
+      billingAddress {
+        streetAddress1
+        city
+        postalCode
+        country {
+          country
+        }
+      }
       shippingAddress {
         streetAddress1
         city
@@ -95,11 +103,7 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
   // Make api call to get email in mjml from metadata
   const rawHtml = compileMjml(rawMjml);
 
-  const { htmlTemplate, plaintextTemplate } = compileTemplate(rawHtml, {
-    order: {
-      order_details_url: "https://saleor.io",
-    },
-  });
+  const { htmlTemplate, plaintextTemplate } = compileTemplate(rawHtml, payload);
 
   // TO-DO
   // Make api call to get email provider
