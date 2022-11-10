@@ -1,9 +1,9 @@
-import { Card, CircularProgress, Grid, Switch, Typography } from "@material-ui/core";
+import { Card, CircularProgress, Grid, Switch, TextField, Typography } from "@material-ui/core";
 import Editor from "@monaco-editor/react";
 import { useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { SALEOR_AUTHORIZATION_BEARER_HEADER, SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
 import { MetadataEntry } from "@saleor/app-sdk/settings-manager";
-import { ConfirmButton, ConfirmButtonTransitionState } from "@saleor/macaw-ui";
+import { Button, ConfirmButton, ConfirmButtonTransitionState } from "@saleor/macaw-ui";
 import { NextPage } from "next";
 import { useEffect, useRef, useState } from "react";
 import { MetadataItem } from "../../generated/graphql";
@@ -57,6 +57,7 @@ const PreviewPage: NextPage = () => {
   const [metadata, setMetadata] = useState<MetadataEntry[]>([]);
   const [transitionState, setTransitionState] = useState<ConfirmButtonTransitionState>("default");
   const [isActive, setIsActive] = useState(false);
+  const [testEmail, setTestEmail] = useState<string>("");
   const { appBridgeState, appBridge } = useAppBridge();
 
   // Get saved template from api
@@ -79,7 +80,6 @@ const PreviewPage: NextPage = () => {
     });
 
     const response = await res.json();
-    console.log({ response });
     setMetadata(response.metadata);
 
     return response.metadata;
@@ -153,6 +153,10 @@ const PreviewPage: NextPage = () => {
     setMounted(true);
   }, []);
 
+  const handleSendTestEmail = async () => {
+    // TO-DO
+  };
+
   return (
     <>
       <Navigation />
@@ -190,9 +194,30 @@ const PreviewPage: NextPage = () => {
 
             <Card style={{ padding: "2rem", marginTop: "2rem" }}>
               <Grid>
-                <Grid item style={{ display: "flex", alignItems: "center" }}>
-                  <Typography variant="h6">Active</Typography>
-                  <Switch onChange={() => setIsActive(!isActive)} checked={isActive} />
+                <Grid
+                  item
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    marginBottom: "2rem",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="h6">Active</Typography>
+                    <Switch onChange={() => setIsActive(!isActive)} checked={isActive} />
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+                    <TextField
+                      fullWidth
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      label="Test email"
+                    />
+                    <Button variant="primary" onClick={handleSendTestEmail}>
+                      Send
+                    </Button>
+                  </div>
                 </Grid>
 
                 <Grid item>
