@@ -1,4 +1,4 @@
-import { CircularProgress, Grid, Switch } from "@material-ui/core";
+import { Card, CircularProgress, Grid, Switch, Typography } from "@material-ui/core";
 import Editor from "@monaco-editor/react";
 import { useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { SALEOR_AUTHORIZATION_BEARER_HEADER, SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
@@ -38,6 +38,16 @@ const updatedMetadata = (
     return metadataEntry;
   });
 
+  if (!updatedMetadata.find((metadataEntry) => metadataEntry.key === entryId)) {
+    updatedMetadata.push({
+      key: entryId,
+      value: JSON.stringify({
+        mjmlTemplate: value,
+        isActive,
+      } as EmailMetadataValue),
+    });
+  }
+
   return updatedMetadata;
 };
 
@@ -69,6 +79,7 @@ const PreviewPage: NextPage = () => {
     });
 
     const response = await res.json();
+    console.log({ response });
     setMetadata(response.metadata);
 
     return response.metadata;
@@ -83,10 +94,14 @@ const PreviewPage: NextPage = () => {
     const savedMetadata = await getEventMetadata(entryId);
     const value = savedMetadata?.value;
 
-    const { mjmlTemplate, isActive } = JSON.parse(value) as EmailMetadataValue;
+    if (value) {
+      const { mjmlTemplate, isActive } = JSON.parse(value) as EmailMetadataValue;
 
-    setEmailTemplate(mjmlTemplate ?? MJML_DEFAULT_TEMPLATE);
-    setIsActive(isActive ?? false);
+      setEmailTemplate(mjmlTemplate);
+      setIsActive(isActive!);
+    } else {
+      setEmailTemplate(MJML_DEFAULT_TEMPLATE);
+    }
   };
 
   useEffect(() => {
@@ -142,44 +157,59 @@ const PreviewPage: NextPage = () => {
     <>
       <Navigation />
       <div>
-        <h1>Emailing app uwu</h1>
+        <Typography variant="h6" style={{ margin: "1rem" }}>
+          Emailing app uwu
+        </Typography>
 
         <Grid spacing={2} container>
           <Grid item xs={6}>
-            {emailTemplate ? (
-              <Editor
-                height="60vh"
-                defaultLanguage="xml"
-                defaultValue={emailTemplate}
-                onMount={handleEditorDidMount}
-                onChange={(value) => setEmailTemplate(value ?? "")}
-              />
-            ) : (
-              <CircularProgress />
-            )}
+            <Card style={{ padding: "2rem" }}>
+              <Typography variant="h6" style={{ marginBottom: "1rem" }}>
+                MJML Editor
+              </Typography>
+
+              {emailTemplate ? (
+                <Editor
+                  height="60vh"
+                  defaultLanguage="xml"
+                  defaultValue={emailTemplate}
+                  onMount={handleEditorDidMount}
+                  onChange={(value) => setEmailTemplate(value ?? "")}
+                />
+              ) : (
+                <CircularProgress />
+              )}
+            </Card>
           </Grid>
 
           <Grid item xs={6}>
-            <div>Preview</div>
-            <div dangerouslySetInnerHTML={{ __html: parsedHtml }} />
-            <Grid>
-              <Grid item>
-                <Switch onChange={() => setIsActive(!isActive)} value={isActive} />
-              </Grid>
+            <Card style={{ padding: "2rem" }}>
+              <Typography variant="h6">Preview</Typography>
+              <div dangerouslySetInnerHTML={{ __html: parsedHtml }} />
+            </Card>
 
-              <Grid item>
-                <ConfirmButton
-                  onClick={handleSaveToMetadata}
-                  transitionState={transitionState}
-                  labels={{
-                    confirm: "Save",
-                    error: "Error",
-                  }}
-                >
-                  Save
-                </ConfirmButton>
+            <Card style={{ padding: "2rem", marginTop: "2rem" }}>
+              <Grid>
+                <Grid item style={{ display: "flex", alignItems: "center" }}>
+                  <Typography variant="h6">Active</Typography>
+                  <Switch onChange={() => setIsActive(!isActive)} checked={isActive} />
+                </Grid>
+
+                <Grid item>
+                  <ConfirmButton
+                    onClick={handleSaveToMetadata}
+                    transitionState={transitionState}
+                    labels={{
+                      confirm: "Save",
+                      error: "Error",
+                    }}
+                    fullWidth
+                  >
+                    Save
+                  </ConfirmButton>
+                </Grid>
               </Grid>
-            </Grid>
+            </Card>
           </Grid>
         </Grid>
       </div>
