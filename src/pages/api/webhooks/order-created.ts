@@ -1,10 +1,9 @@
-import { SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
+import { SALEOR_AUTHORIZATION_BEARER_HEADER, SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
 import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handlers/next";
 
 import { gql } from "urql";
 import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphql";
 import { saleorApp } from "../../../../saleor-app";
-import { MJML_DEFAULT_TEMPLATE } from "../../../consts";
 import { createClient } from "../../../lib/graphql";
 import { createSettingsManager } from "../../../lib/metadata";
 import { compileMjml } from "../../../lib/mjml";
@@ -91,25 +90,32 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
 
   const settings = createSettingsManager(client);
 
-  // fake func
   const getMjmlEmail = async () => {
-    // TO-DO
-    return MJML_DEFAULT_TEMPLATE;
+    // TODO: move it to lib handler
+    const res = await fetch("http://localhost:3000/api/metadata", {
+      method: "GET",
+      headers: [
+        ["content-type", "application/json"],
+        [SALEOR_DOMAIN_HEADER, authData.domain],
+        [SALEOR_AUTHORIZATION_BEARER_HEADER, authData.token],
+      ],
+    });
+
+    const response = await res.json();
+
+    const template = JSON.parse(response.metadata[0].value).mjmlTemplate;
+
+    return template;
   };
 
   const rawMjml = await getMjmlEmail();
 
-  // TO-DO
-  // Make api call to get email in mjml from metadata
   const rawHtml = compileMjml(rawMjml);
 
   const { htmlTemplate, plaintextTemplate } = compileTemplate(rawHtml, payload);
 
-  // TO-DO
-  // Make api call to get email provider
-
   // Check if desired email provider is configured
-  // If not DONT send error to saleor
+  // If not don't send error to saleor
 
   const data = await settings.get("mailhog");
 
@@ -121,7 +127,7 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
       html: htmlTemplate,
       from: "Saleor Mailing Bot <mail@saleor.io>",
       to: "test@user.com",
-      subject: "Welcome to Saleor Mail",
+      subject: "Your order has been created",
     },
     smtpSettings: {
       host: smtpHost,
