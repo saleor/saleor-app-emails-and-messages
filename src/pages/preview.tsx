@@ -154,7 +154,38 @@ const PreviewPage: NextPage = () => {
   }, []);
 
   const handleSendTestEmail = async () => {
-    // TO-DO
+    fetch("/api/sendEmail", {
+      method: "POST",
+      headers: [
+        ["content-type", "application/json"],
+        [SALEOR_DOMAIN_HEADER, appBridgeState?.domain!],
+        [SALEOR_AUTHORIZATION_BEARER_HEADER, appBridgeState?.token!],
+      ],
+      body: JSON.stringify({
+        rawHtml: parsedHtml,
+        email: testEmail,
+      }),
+    })
+      .then(() => {
+        appBridge?.dispatch({
+          type: "notification",
+          payload: {
+            status: "success",
+            title: "Test emails was dispatched to send",
+            actionId: "",
+          },
+        });
+      })
+      .catch(() => {
+        appBridge?.dispatch({
+          type: "notification",
+          payload: {
+            status: "error",
+            title: "An error has occured while sending test email",
+            actionId: "",
+          },
+        });
+      });
   };
 
   return (
