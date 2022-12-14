@@ -10,6 +10,7 @@ import { createSettingsManager } from "../../lib/metadata";
 // shape of the data for communication. It's completely optional, but makes
 // refactoring much easier.
 export interface SettingsUpdateApiRequest {
+  isActive: boolean;
   client: string;
   mailhog?: Mailhog;
   smtp?: SMTP;
@@ -33,6 +34,7 @@ export interface SMTP {
 export interface SettingsApiResponse {
   success: boolean;
   data?: {
+    isActive: boolean;
     client: string;
     mailhog?: Mailhog;
     smtp?: SMTP;
@@ -63,9 +65,11 @@ const sendResponse = async (
   const mailhog = mailhogStr ? JSON.parse(mailhogStr) : null;
   const smtpStr = await settings.get("smtp");
   const smtp = smtpStr ? JSON.parse(smtpStr) : null;
+  const isActive = (await settings.get("isActive")) || "false";
   res.status(statusCode).json({
     success: statusCode === 200,
     data: {
+      isActive: isActive === "true",
       client: (await settings.get("client")) || "",
       mailhog: mailhog,
       smtp: smtp,
@@ -81,7 +85,6 @@ export default async function handler(
 ) {
   const saleorDomain = req.headers[SALEOR_DOMAIN_HEADER] as string;
   const authData = await saleorApp.apl.get(saleorDomain);
-
   if (!authData) {
     console.debug(`Could not find auth data for the domain ${saleorDomain}.`);
     res.status(401).json({ success: false });
@@ -101,7 +104,7 @@ export default async function handler(
     await sendResponse(res, 200, settings, saleorDomain);
     return;
   } else if (req.method === "POST") {
-    const { client, mailhog, smtp } = req.body as SettingsUpdateApiRequest;
+    const { client, isActive, mailhog, smtp } = req.body as SettingsUpdateApiRequest;
 
     if (Boolean(client && (mailhog || smtp))) {
       // You can set metadata one by one, but passing array of the values
@@ -110,7 +113,10 @@ export default async function handler(
       // will be automatically updated
       const mailhogData = mailhog ? JSON.stringify(mailhog) : null;
       const smtpData = smtp ? JSON.stringify(smtp) : null;
-      const data = [{ key: "client", value: client }];
+      const data = [
+        { key: "client", value: client },
+        { key: "isActive", value: String(isActive) },
+      ];
       if (smtpData) {
         data.push({ key: "smtp", value: smtpData });
       }
