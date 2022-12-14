@@ -30,6 +30,7 @@ const SettingsPage = () => {
     const newSettings: SettingsUpdateApiRequest = {
       mailhog: { smtpHost, smtpPort },
       client: "mailhog",
+      isActive: true,
     };
 
     const response = await fetch("/api/configuration", {
