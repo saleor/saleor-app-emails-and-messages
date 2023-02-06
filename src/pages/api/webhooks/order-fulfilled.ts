@@ -3,14 +3,14 @@ import { gql } from "urql";
 import { saleorApp } from "../../../saleor-app";
 import { logger as pinoLogger } from "../../../lib/logger";
 import { getMjmlSettings } from "../../../modules/mjml/get-mjml-settings";
-import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphql";
+import { OrderFulfilledWebhookPayloadFragment } from "../../../../generated/graphql";
 import { compileMjml } from "../../../modules/mjml/compile-mjml";
 import { compileHandlebarsTemplate } from "../../../modules/mjml/compile-handlebars-template";
 import { sendEmailWithSmtp } from "../../../modules/mjml/send-email-with-smtp";
-import { defaultOrderCreatedMjmlTemplate } from "../../../modules/mjml/default-templates";
+import { defaultOrderFulfilledMjmlTemplate } from "../../../modules/mjml/default-templates";
 
-const OrderCreatedWebhookPayload = gql`
-  fragment OrderCreatedWebhookPayload on OrderCreated {
+const OrderFulfilledWebhookPayload = gql`
+  fragment OrderFulfilledWebhookPayload on OrderFulfilled {
     order {
       id
       number
@@ -61,30 +61,30 @@ const OrderCreatedWebhookPayload = gql`
   }
 `;
 
-const OrderCreatedGraphqlSubscription = gql`
-  ${OrderCreatedWebhookPayload}
-  subscription OrderCreated {
+const OrderFulfilledGraphqlSubscription = gql`
+  ${OrderFulfilledWebhookPayload}
+  subscription OrderFulfilled {
     event {
-      ...OrderCreatedWebhookPayload
+      ...OrderFulfilledWebhookPayload
     }
   }
 `;
 
-export const orderCreatedWebhook = new SaleorAsyncWebhook<OrderCreatedWebhookPayloadFragment>({
-  name: "Order Created in Saleor",
-  webhookPath: "api/webhooks/order-created",
-  asyncEvent: "ORDER_CREATED",
+export const orderFulfilledWebhook = new SaleorAsyncWebhook<OrderFulfilledWebhookPayloadFragment>({
+  name: "Order Fulfilled in Saleor",
+  webhookPath: "api/webhooks/order-fulfilled",
+  asyncEvent: "ORDER_FULFILLED",
   apl: saleorApp.apl,
-  subscriptionQueryAst: OrderCreatedGraphqlSubscription,
+  subscriptionQueryAst: OrderFulfilledGraphqlSubscription,
 });
 
-const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async (
+const handler: NextWebhookApiHandler<OrderFulfilledWebhookPayloadFragment> = async (
   req,
   res,
   context
 ) => {
   const logger = pinoLogger.child({
-    webhook: orderCreatedWebhook.name,
+    webhook: orderFulfilledWebhook.name,
   });
 
   const { payload, authData } = context;
@@ -106,9 +106,8 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
   const channel = order.channel.slug;
 
   const settings = await getMjmlSettings({ authData, channel });
-  logger.info("start");
 
-  const rawMjml = settings.templateOrderCreatedTemplate || defaultOrderCreatedMjmlTemplate;
+  const rawMjml = settings.templateOrderFulfilledTemplate || defaultOrderFulfilledMjmlTemplate;
 
   const { html: rawHtml, errors: mjmlCompilationErrors } = compileMjml(rawMjml);
 
@@ -144,7 +143,7 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
       html: htmlTemplate,
       from: `${settings.senderName} <${settings.senderEmail}>`,
       to: recipientEmail,
-      subject: settings.templateOrderCreatedSubject || "Your order has been created",
+      subject: settings.templateOrderFulfilledSubject || "Your order has been fulfilled",
     },
     smtpSettings: {
       host: settings.smtpHost,
@@ -162,7 +161,7 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
   return res.status(200).json({ success: "The email has been sent" });
 };
 
-export default orderCreatedWebhook.createHandler(handler);
+export default orderFulfilledWebhook.createHandler(handler);
 
 export const config = {
   api: {

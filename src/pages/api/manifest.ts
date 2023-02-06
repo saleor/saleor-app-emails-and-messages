@@ -3,6 +3,7 @@ import { AppManifest } from "@saleor/app-sdk/types";
 
 import packageJson from "../../../package.json";
 import { orderCreatedWebhook } from "./webhooks/order-created";
+import { orderFulfilledWebhook } from "./webhooks/order-fulfilled";
 
 export default createManifestHandler({
   async manifestFactory(context) {
@@ -10,17 +11,13 @@ export default createManifestHandler({
       name: packageJson.name,
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
       appUrl: context.appBaseUrl,
-      permissions: [
-        "MANAGE_ORDERS",
-        "MANAGE_APPS",
-        /**
-         * Set permissions for app if needed
-         * https://docs.saleor.io/docs/3.x/developer/permissions
-         */
-      ],
-      id: "saleor.app.mailing",
+      permissions: ["MANAGE_ORDERS", "MANAGE_APPS"],
+      id: "saleor.app.emails.and.messages",
       version: packageJson.version,
-      webhooks: [orderCreatedWebhook.getWebhookManifest(context.appBaseUrl)],
+      webhooks: [
+        orderCreatedWebhook.getWebhookManifest(context.appBaseUrl),
+        orderFulfilledWebhook.getWebhookManifest(context.appBaseUrl),
+      ],
       extensions: [
         /**
          * Optionally, extend Dashboard with custom UIs

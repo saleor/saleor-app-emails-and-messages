@@ -2,12 +2,14 @@ import "../styles/globals.css";
 
 import { Theme } from "@material-ui/core/styles";
 import { AppBridge, AppBridgeProvider } from "@saleor/app-sdk/app-bridge";
+import { RoutePropagator } from "@saleor/app-sdk/app-bridge/next";
 import { ThemeProvider as MacawUIThemeProvider } from "@saleor/macaw-ui";
 import React, { PropsWithChildren, useEffect } from "react";
 import { AppProps } from "next/app";
-import GraphQLProvider from "../providers/GraphQLProvider";
+
 import { ThemeSynchronizer } from "../lib/theme-synchronizer";
-import { RoutePropagator } from "@saleor/app-sdk/app-bridge/next";
+import { NoSSRWrapper } from "../lib/no-ssr-wrapper";
+import { trpcClient } from "../modules/trpc/trpc-client";
 
 const themeOverrides: Partial<Theme> = {
   /**
@@ -19,7 +21,7 @@ const themeOverrides: Partial<Theme> = {
  * Ensure instance is a singleton.
  * TODO: This is React 18 issue, consider hiding this workaround inside app-sdk
  */
-const appBridgeInstance = typeof window !== "undefined" ? new AppBridge() : undefined;
+export const appBridgeInstance = typeof window !== "undefined" ? new AppBridge() : undefined;
 
 /**
  * That's a hack required by Macaw-UI incompatibility with React@18
@@ -40,16 +42,16 @@ function NextApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <AppBridgeProvider appBridgeInstance={appBridgeInstance}>
-      <GraphQLProvider>
-        <ThemeProvider overrides={themeOverrides} ssr>
+    <NoSSRWrapper>
+      <AppBridgeProvider appBridgeInstance={appBridgeInstance}>
+        <ThemeProvider overrides={themeOverrides} ssr={false}>
           <ThemeSynchronizer />
           <RoutePropagator />
           <Component {...pageProps} />
         </ThemeProvider>
-      </GraphQLProvider>
-    </AppBridgeProvider>
+      </AppBridgeProvider>
+    </NoSSRWrapper>
   );
 }
 
-export default NextApp;
+export default trpcClient.withTRPC(NextApp);
