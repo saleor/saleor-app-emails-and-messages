@@ -6,10 +6,11 @@ const logger = pinoLogger.child({
 });
 
 export const compileMjml = (mjml: string) => {
+  logger.debug("Converting MJML template to HTML");
   try {
     return mjml2html(mjml);
   } catch (error) {
-    logger.error("MJML to HTML compilation failed");
+    logger.error(error);
     return {
       html: undefined,
       errors: [{ message: "Critical error during the mjml to html compilation" }],

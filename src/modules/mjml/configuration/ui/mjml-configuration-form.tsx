@@ -1,9 +1,18 @@
 import { Controller, useForm } from "react-hook-form";
-import { FormControlLabel, Switch, TextField, TextFieldProps, Typography } from "@material-ui/core";
+import {
+  FormControlLabel,
+  Link,
+  Switch,
+  TextField,
+  TextFieldProps,
+  Typography,
+} from "@material-ui/core";
 import { Button, makeStyles } from "@saleor/macaw-ui";
 import React from "react";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { SellerShopConfig } from "../mjml-config";
+import { MjmlEditor } from "./mjml-editor";
+import { MjmlPreview } from "./mjml-preview";
 
 const useStyles = makeStyles({
   field: {
@@ -139,26 +148,46 @@ export const MjmlConfigurationForm = (props: Props) => {
         {...CommonFieldProps}
         {...register("templateOrderCreatedSubject")}
       />
-      <TextField
-        label="Order Created Email template"
-        multiline={true}
-        minRows={20}
-        maxRows={50}
-        {...CommonFieldProps}
-        {...register("templateOrderCreatedTemplate")}
+
+      <Controller
+        control={control}
+        name="templateOrderCreatedTemplate"
+        defaultValue={getValues("templateOrderCreatedTemplate")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <>
+              <MjmlEditor
+                initialTemplate={value}
+                value={value}
+                onChange={(value) => setValue(`templateOrderCreatedTemplate`, value)}
+              />
+              <MjmlPreview value={getValues("templateOrderCreatedTemplate")} />
+            </>
+          );
+        }}
       />
+
       <TextField
         label="Order Fulfilled Email subject"
         {...CommonFieldProps}
         {...register("templateOrderFulfilledSubject")}
       />
-      <TextField
-        label="Order Fulfilled Email template"
-        multiline={true}
-        minRows={20}
-        maxRows={50}
-        {...CommonFieldProps}
-        {...register("templateOrderFulfilledTemplate")}
+      <Controller
+        control={control}
+        name="templateOrderFulfilledTemplate"
+        defaultValue={getValues("templateOrderFulfilledTemplate")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <>
+              <MjmlEditor
+                initialTemplate={value}
+                value={value}
+                onChange={(value) => setValue(`templateOrderFulfilledTemplate`, value)}
+              />
+              <MjmlPreview value={getValues("templateOrderFulfilledTemplate")} />
+            </>
+          );
+        }}
       />
 
       <Button type="submit" fullWidth variant="primary">

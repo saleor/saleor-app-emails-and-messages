@@ -1,4 +1,8 @@
 import { MjmlConfig, SellerShopConfig } from "./mjml-config";
+import {
+  defaultOrderCreatedMjmlTemplate,
+  defaultOrderFulfilledMjmlTemplate,
+} from "../default-templates";
 
 export const getDefaultEmptyMjmlConfiguration = (): SellerShopConfig["mjmlConfiguration"] => {
   const defaultConfig = {
@@ -11,9 +15,9 @@ export const getDefaultEmptyMjmlConfiguration = (): SellerShopConfig["mjmlConfig
     useTls: false,
     useSsl: false,
     templateOrderCreatedSubject: "Order confirmed",
-    templateOrderCreatedTemplate: "",
+    templateOrderCreatedTemplate: defaultOrderCreatedMjmlTemplate,
     templateOrderFulfilledSubject: "Order fulfilled",
-    templateOrderFulfilledTemplate: "",
+    templateOrderFulfilledTemplate: defaultOrderFulfilledMjmlTemplate,
   };
 
   if (process.env.NODE_ENV === "development") {

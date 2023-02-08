@@ -1,6 +1,6 @@
 export interface SellerShopConfig {
   appConfiguration: {
-    active: string;
+    active: boolean;
   };
 }
 

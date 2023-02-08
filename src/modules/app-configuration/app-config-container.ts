@@ -1,7 +1,7 @@
 import { AppConfig, SellerShopConfig } from "./app-config";
 
 const getDefaultEmptyAppConfiguration = (): SellerShopConfig["appConfiguration"] => ({
-  active: "",
+  active: false,
 });
 
 const getChannelAppConfiguration =

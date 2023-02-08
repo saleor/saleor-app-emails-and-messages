@@ -7,6 +7,7 @@ const logger = pinoLogger.child({
 });
 
 export const compileHandlebarsTemplate = (html: string, variables: any) => {
+  logger.debug("Compiling HTML using handlebars templates");
   try {
     const template = Handlebars.compile(html);
     const htmlTemplate = template(variables);
@@ -18,7 +19,7 @@ export const compileHandlebarsTemplate = (html: string, variables: any) => {
       plaintextTemplate,
     };
   } catch (error) {
-    logger.error(`Error during the error compilation: ${error}`);
+    logger.error(error);
     return {
       errors: [{ message: "Error during the using the handlebars template" }],
     };

@@ -5,7 +5,7 @@ const logger = pinoLogger.child({
   fn: "sendEmailWithSmtp",
 });
 
-type SendMailProps = {
+interface SendMailArgs {
   smtpSettings: {
     host: string;
     port: number;
@@ -17,9 +17,10 @@ type SendMailProps = {
     html: string;
     subject: string;
   };
-};
+}
 
-export const sendEmailWithSmtp = async ({ smtpSettings, mailData }: SendMailProps) => {
+export const sendEmailWithSmtp = async ({ smtpSettings, mailData }: SendMailArgs) => {
+  logger.debug("Sending an email with SMTP");
   try {
     const transporter = nodemailer.createTransport({
       ...smtpSettings,
@@ -32,7 +33,10 @@ export const sendEmailWithSmtp = async ({ smtpSettings, mailData }: SendMailProp
     return { response };
   } catch (error) {
     logger.error("Error during sending the email");
-    logger.error(error);
-    return { errors: [{ message: error }] };
+    if (error instanceof Error) {
+      logger.error(error.message);
+      return { errors: [{ message: error.message }] };
+    }
+    return { errors: [{ message: "SMTP error" }] };
   }
 };

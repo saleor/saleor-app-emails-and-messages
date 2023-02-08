@@ -11,8 +11,8 @@ export default createManifestHandler({
       name: packageJson.name,
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
       appUrl: context.appBaseUrl,
-      permissions: ["MANAGE_ORDERS", "MANAGE_APPS"],
-      id: "saleor.app.emails.and.messages",
+      permissions: ["MANAGE_ORDERS"],
+      id: "saleor.app.emails-and-messages",
       version: packageJson.version,
       webhooks: [
         orderCreatedWebhook.getWebhookManifest(context.appBaseUrl),

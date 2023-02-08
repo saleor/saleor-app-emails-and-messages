@@ -2,12 +2,8 @@ import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handl
 import { gql } from "urql";
 import { saleorApp } from "../../../saleor-app";
 import { logger as pinoLogger } from "../../../lib/logger";
-import { getMjmlSettings } from "../../../modules/mjml/get-mjml-settings";
 import { OrderFulfilledWebhookPayloadFragment } from "../../../../generated/graphql";
-import { compileMjml } from "../../../modules/mjml/compile-mjml";
-import { compileHandlebarsTemplate } from "../../../modules/mjml/compile-handlebars-template";
-import { sendEmailWithSmtp } from "../../../modules/mjml/send-email-with-smtp";
-import { defaultOrderFulfilledMjmlTemplate } from "../../../modules/mjml/default-templates";
+import { sendEventMessages } from "../../../modules/event-handlers/send-event-messages";
 
 const OrderFulfilledWebhookPayload = gql`
   fragment OrderFulfilledWebhookPayload on OrderFulfilled {
@@ -87,6 +83,8 @@ const handler: NextWebhookApiHandler<OrderFulfilledWebhookPayloadFragment> = asy
     webhook: orderFulfilledWebhook.name,
   });
 
+  logger.debug("Webhook received");
+
   const { payload, authData } = context;
   const { order } = payload;
 
@@ -105,60 +103,15 @@ const handler: NextWebhookApiHandler<OrderFulfilledWebhookPayloadFragment> = asy
 
   const channel = order.channel.slug;
 
-  const settings = await getMjmlSettings({ authData, channel });
-
-  const rawMjml = settings.templateOrderFulfilledTemplate || defaultOrderFulfilledMjmlTemplate;
-
-  const { html: rawHtml, errors: mjmlCompilationErrors } = compileMjml(rawMjml);
-
-  if (mjmlCompilationErrors.length) {
-    logger.error("Error during the MJML compilation");
-    logger.error(mjmlCompilationErrors);
-    return res.status(400).json({ error: "Error during the MJML compilation" });
-  }
-
-  if (!rawHtml?.length) {
-    logger.error("No HTML template returned after the compilation");
-    return res.status(400).json({ error: "No HTML template returned after the compilation" });
-  }
-
-  const {
-    htmlTemplate,
-    plaintextTemplate,
-    errors: handlebarsErrors,
-  } = compileHandlebarsTemplate(rawHtml, payload);
-  if (handlebarsErrors?.length) {
-    logger.error("Error during the handlebars template compilation");
-    return res.status(400).json({ error: "Error during the handlebars template compilation" });
-  }
-
-  if (!htmlTemplate?.length) {
-    logger.error("The final email message is empty, skipping");
-    return res.status(400).json({ error: "The final email message is empty, skipping" });
-  }
-
-  const { response, errors: smtpErrors } = await sendEmailWithSmtp({
-    mailData: {
-      text: plaintextTemplate,
-      html: htmlTemplate,
-      from: `${settings.senderName} <${settings.senderEmail}>`,
-      to: recipientEmail,
-      subject: settings.templateOrderFulfilledSubject || "Your order has been fulfilled",
-    },
-    smtpSettings: {
-      host: settings.smtpHost,
-      port: parseInt(settings.smtpPort, 10),
-    },
+  await sendEventMessages({
+    authData,
+    channel,
+    event: "ORDER_FULFILLED",
+    payload: payload.order,
+    recipientEmail,
   });
 
-  if (smtpErrors?.length) {
-    logger.error(smtpErrors);
-    return res.status(400).json({ errors: smtpErrors });
-  }
-
-  logger.info(response?.response);
-
-  return res.status(200).json({ success: "The email has been sent" });
+  return res.status(200).json({ message: "The event has been handled" });
 };
 
 export default orderFulfilledWebhook.createHandler(handler);

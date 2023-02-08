@@ -6,15 +6,15 @@ import { AppConfigurationForm } from "./app-configuration-form";
 import { ChannelsList } from "./channels-list";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { AppColumnsLayout } from "../../ui/app-columns-layout";
-import { Instructions } from "./instructions";
 import { trpcClient } from "../../trpc/trpc-client";
 import { MjmlConfigurationForm } from "../../mjml/configuration/ui/mjml-configuration-form";
 import { MjmlConfigContainer } from "../../mjml/configuration/mjml-config-container";
+import { SendgridConfigurationForm } from "../../sendgrid/configuration/ui/sendgrid-configuration-form";
+import { SendgridConfigContainer } from "../../sendgrid/configuration/sendgrid-config-container";
 
 const useStyles = makeStyles((theme) => {
   return {
     header: { marginBottom: 20 },
-    grid: { display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "start", gap: 40 },
     formContainer: {
       top: 0,
     },
@@ -39,6 +39,9 @@ export const ChannelsConfiguration = () => {
 
   const { data: mjmlConfigurationData, refetch: mjmlRefetchConfig } =
     trpcClient.mjmlConfiguration.fetch.useQuery();
+
+  const { data: sendgridConfigurationData, refetch: sendgridRefetchConfig } =
+    trpcClient.sendgridConfiguration.fetch.useQuery();
 
   const channels = trpcClient.channels.fetch.useQuery();
 
@@ -65,6 +68,20 @@ export const ChannelsConfiguration = () => {
           actions.Notification({
             title: "Success",
             text: "Saved mjml configuration",
+            status: "success",
+          })
+        );
+      },
+    });
+
+  const { mutate: sendgridMutate, error: sendgridSaveError } =
+    trpcClient.sendgridConfiguration.setAndReplace.useMutation({
+      onSuccess() {
+        sendgridRefetchConfig();
+        appBridge?.dispatch(
+          actions.Notification({
+            title: "Success",
+            text: "Saved sendgrid configuration",
             status: "success",
           })
         );
@@ -141,9 +158,27 @@ export const ChannelsConfiguration = () => {
             />
             {mjmlSaveError && <span>{mjmlSaveError.message}</span>}
           </Paper>
+          <Paper elevation={0} className={styles.formContainer}>
+            <SendgridConfigurationForm
+              channelID={activeChannel.id}
+              key={activeChannelSlug}
+              channelSlug={activeChannel.slug}
+              onSubmit={async (data) => {
+                const newConfig = SendgridConfigContainer.setChannelSendgridConfiguration(
+                  sendgridConfigurationData
+                )(activeChannel.slug)(data);
+
+                sendgridMutate(newConfig);
+              }}
+              initialData={SendgridConfigContainer.getChannelSendgridConfiguration(
+                sendgridConfigurationData
+              )(activeChannel.slug)}
+              channelName={activeChannel?.name ?? activeChannelSlug}
+            />
+            {sendgridSaveError && <span>{sendgridSaveError.message}</span>}
+          </Paper>
         </div>
       ) : null}
-      <Instructions />
     </AppColumnsLayout>
   );
 };

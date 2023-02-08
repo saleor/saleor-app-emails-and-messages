@@ -1,6 +1,6 @@
 import { SellerShopConfig } from "../app-config";
-import { useForm } from "react-hook-form";
-import { TextField, TextFieldProps, Typography } from "@material-ui/core";
+import { Controller, useForm } from "react-hook-form";
+import { FormControlLabel, Switch, TextFieldProps, Typography } from "@material-ui/core";
 import { Button, makeStyles } from "@saleor/macaw-ui";
 import React from "react";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
@@ -27,7 +27,9 @@ type Props = {
 };
 
 export const AppConfigurationForm = (props: Props) => {
-  const { register, handleSubmit } = useForm<SellerShopConfig["appConfiguration"]>({
+  const { register, handleSubmit, getValues, setValue, control } = useForm<
+    SellerShopConfig["appConfiguration"]
+  >({
     defaultValues: props.initialData ?? undefined,
   });
   const styles = useStyles();
@@ -60,7 +62,28 @@ export const AppConfigurationForm = (props: Props) => {
         </strong>
         channel:
       </Typography>
-      <TextField label="Active" {...CommonFieldProps} {...register("active")} />
+      <Controller
+        control={control}
+        name="active"
+        defaultValue={getValues("active")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControlLabel
+              control={
+                <Switch
+                  value={value}
+                  checked={value}
+                  onChange={(event, val) => {
+                    setValue(`active`, val);
+                    return onChange(val);
+                  }}
+                />
+              }
+              label="Active"
+            />
+          );
+        }}
+      />
       <Button type="submit" fullWidth variant="primary">
         Save channel configuration
       </Button>
