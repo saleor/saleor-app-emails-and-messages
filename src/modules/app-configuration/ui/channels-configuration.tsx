@@ -1,16 +1,8 @@
-import { LinearProgress, Paper } from "@material-ui/core";
-import React, { useEffect, useMemo, useState } from "react";
-import { makeStyles } from "@saleor/macaw-ui";
-import { AppConfigContainer } from "../app-config-container";
-import { AppConfigurationForm } from "./app-configuration-form";
-import { ChannelsList } from "./channels-list";
-import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
-import { AppColumnsLayout } from "../../ui/app-columns-layout";
-import { trpcClient } from "../../trpc/trpc-client";
-import { MjmlConfigurationForm } from "../../mjml/configuration/ui/mjml-configuration-form";
-import { MjmlConfigContainer } from "../../mjml/configuration/mjml-config-container";
-import { SendgridConfigurationForm } from "../../sendgrid/configuration/ui/sendgrid-configuration-form";
-import { SendgridConfigContainer } from "../../sendgrid/configuration/sendgrid-config-container";
+import React from "react";
+import { makeStyles, PageTab, PageTabs } from "@saleor/macaw-ui";
+import { ChannelsConfigurationTab } from "./channels-configuration-tab";
+import { MjmlConfigurationTab } from "./mjml-configuration-tab";
+import { SendgridConfigurationTab } from "./sendgrid-configuration-tab";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -31,154 +23,33 @@ const useStyles = makeStyles((theme) => {
 
 export const ChannelsConfiguration = () => {
   const styles = useStyles();
+  const [activeTab, setActiveTab] = React.useState<Tab>("channels");
 
-  const { appBridge } = useAppBridge();
-
-  const { data: configurationData, refetch: refetchConfig } =
-    trpcClient.appConfiguration.fetch.useQuery();
-
-  const { data: mjmlConfigurationData, refetch: mjmlRefetchConfig } =
-    trpcClient.mjmlConfiguration.fetch.useQuery();
-
-  const { data: sendgridConfigurationData, refetch: sendgridRefetchConfig } =
-    trpcClient.sendgridConfiguration.fetch.useQuery();
-
-  const channels = trpcClient.channels.fetch.useQuery();
-
-  const [activeChannelSlug, setActiveChannelSlug] = useState<string | null>(null);
-
-  const { mutate, error: saveError } = trpcClient.appConfiguration.setAndReplace.useMutation({
-    onSuccess() {
-      refetchConfig();
-      appBridge?.dispatch(
-        actions.Notification({
-          title: "Success",
-          text: "Saved app configuration",
-          status: "success",
-        })
-      );
+  const tabs = {
+    channels: {
+      component: <ChannelsConfigurationTab />,
+      label: "Channels",
     },
-  });
+    mjml: {
+      component: <MjmlConfigurationTab />,
+      label: "MJML",
+    },
+    sendgrid: {
+      component: <SendgridConfigurationTab />,
+      label: "Sendgrid",
+    },
+  };
 
-  const { mutate: mjmlMutate, error: mjmlSaveError } =
-    trpcClient.mjmlConfiguration.setAndReplace.useMutation({
-      onSuccess() {
-        mjmlRefetchConfig();
-        appBridge?.dispatch(
-          actions.Notification({
-            title: "Success",
-            text: "Saved mjml configuration",
-            status: "success",
-          })
-        );
-      },
-    });
-
-  const { mutate: sendgridMutate, error: sendgridSaveError } =
-    trpcClient.sendgridConfiguration.setAndReplace.useMutation({
-      onSuccess() {
-        sendgridRefetchConfig();
-        appBridge?.dispatch(
-          actions.Notification({
-            title: "Success",
-            text: "Saved sendgrid configuration",
-            status: "success",
-          })
-        );
-      },
-    });
-
-  useEffect(() => {
-    if (channels.isSuccess) {
-      setActiveChannelSlug(channels.data![0].slug ?? null);
-    }
-  }, [channels.isSuccess, channels.data]);
-
-  const activeChannel = useMemo(() => {
-    try {
-      return channels.data!.find((c) => c.slug === activeChannelSlug)!;
-    } catch (e) {
-      return null;
-    }
-  }, [channels.data, activeChannelSlug]);
-
-  if (channels.isLoading || !channels.data) {
-    return <LinearProgress />;
-  }
-
-  if (!activeChannel) {
-    return <div>Error. No channel available</div>;
-  }
+  type Tab = keyof typeof tabs;
 
   return (
-    <AppColumnsLayout>
-      <ChannelsList
-        channels={channels.data}
-        activeChannelSlug={activeChannel.slug}
-        onChannelClick={setActiveChannelSlug}
-      />
-
-      {activeChannel ? (
-        <div className={styles.configurationColumn}>
-          <Paper elevation={0} className={styles.formContainer}>
-            <AppConfigurationForm
-              channelID={activeChannel.id}
-              key={activeChannelSlug}
-              channelSlug={activeChannel.slug}
-              onSubmit={async (data) => {
-                const newConfig = AppConfigContainer.setChannelAppConfiguration(configurationData)(
-                  activeChannel.slug
-                )(data);
-
-                mutate(newConfig);
-              }}
-              initialData={AppConfigContainer.getChannelAppConfiguration(configurationData)(
-                activeChannel.slug
-              )}
-              channelName={activeChannel?.name ?? activeChannelSlug}
-            />
-            {saveError && <span>{saveError.message}</span>}
-          </Paper>
-          <Paper elevation={0} className={styles.formContainer}>
-            <MjmlConfigurationForm
-              channelID={activeChannel.id}
-              key={activeChannelSlug}
-              channelSlug={activeChannel.slug}
-              onSubmit={async (data) => {
-                const newConfig = MjmlConfigContainer.setChannelMjmlConfiguration(
-                  mjmlConfigurationData
-                )(activeChannel.slug)(data);
-
-                mjmlMutate(newConfig);
-              }}
-              initialData={MjmlConfigContainer.getChannelMjmlConfiguration(mjmlConfigurationData)(
-                activeChannel.slug
-              )}
-              channelName={activeChannel?.name ?? activeChannelSlug}
-            />
-            {mjmlSaveError && <span>{mjmlSaveError.message}</span>}
-          </Paper>
-          <Paper elevation={0} className={styles.formContainer}>
-            <SendgridConfigurationForm
-              channelID={activeChannel.id}
-              key={activeChannelSlug}
-              channelSlug={activeChannel.slug}
-              onSubmit={async (data) => {
-                const newConfig = SendgridConfigContainer.setChannelSendgridConfiguration(
-                  sendgridConfigurationData
-                )(activeChannel.slug)(data);
-
-                sendgridMutate(newConfig);
-              }}
-              initialData={SendgridConfigContainer.getChannelSendgridConfiguration(
-                sendgridConfigurationData
-              )(activeChannel.slug)}
-              channelName={activeChannel?.name ?? activeChannelSlug}
-            />
-            {sendgridSaveError && <span>{sendgridSaveError.message}</span>}
-          </Paper>
-        </div>
-      ) : null}
-    </AppColumnsLayout>
+    <>
+      <PageTabs value={activeTab} onChange={(value) => setActiveTab(value as Tab)}>
+        {Object.entries(tabs).map(([key, config]) => (
+          <PageTab key={key} value={key} label={config.label} />
+        ))}
+      </PageTabs>
+      {tabs[activeTab].component}
+    </>
   );
 };
