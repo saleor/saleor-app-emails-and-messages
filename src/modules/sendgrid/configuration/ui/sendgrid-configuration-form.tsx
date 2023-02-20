@@ -160,18 +160,50 @@ export const SendgridConfigurationForm = (props: Props) => {
           );
         }}
       />
-      <TextField
-        label="Configuration name"
-        {...CommonFieldProps}
-        {...register("configurationName")}
+      <Controller
+        name="configurationName"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Configuration name"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
       />
-      <TextField label="Sender name" {...CommonFieldProps} {...register("senderName")} />
-      <TextField label="Sender email" {...CommonFieldProps} {...register("senderEmail")} />
-      <TextField label="API Key" {...CommonFieldProps} {...register("apiKey")} />
-      <TextField
-        label="Order Created Email subject"
-        {...CommonFieldProps}
-        {...register("templateOrderCreatedSubject")}
+      <Controller
+        name="senderName"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField label="Sender name" value={value} onChange={onChange} {...CommonFieldProps} />
+        )}
+      />
+      <Controller
+        name="senderEmail"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField label="Sender email" value={value} onChange={onChange} {...CommonFieldProps} />
+        )}
+      />
+      <Controller
+        name="apiKey"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField label="API key" value={value} onChange={onChange} {...CommonFieldProps} />
+        )}
+      />
+      <Controller
+        name="templateOrderCreatedSubject"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Order Created Email subject"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
       />
 
       <Controller
@@ -203,11 +235,20 @@ export const SendgridConfigurationForm = (props: Props) => {
           );
         }}
       />
-      <TextField
-        label="Order Fulfilled Email subject"
-        {...CommonFieldProps}
-        {...register("templateOrderFulfilledSubject")}
+
+      <Controller
+        name="templateOrderFulfilledSubject"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Order Fulfilled Email subject"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
       />
+
       <Controller
         control={control}
         name="templateOrderFulfilledTemplate"
