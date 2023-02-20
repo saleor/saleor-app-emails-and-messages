@@ -11,9 +11,8 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Button, makeStyles } from "@saleor/macaw-ui";
-import React from "react";
-import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
-import { SellerShopConfig } from "../sendgrid-config";
+import React, { useEffect } from "react";
+import { SendgridConfiguration } from "../sendgrid-config";
 import { useQuery } from "@tanstack/react-query";
 
 const useStyles = makeStyles({
@@ -30,23 +29,24 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  channelSlug: string;
-  channelName: string;
-  channelID: string;
-  onSubmit(data: SellerShopConfig["sendgridConfiguration"]): Promise<void>;
-  initialData?: SellerShopConfig["sendgridConfiguration"] | null;
+  onSubmit(data: SendgridConfiguration): Promise<void>;
+  initialData: SendgridConfiguration;
+  configurationId?: string;
 };
 
 export const SendgridConfigurationForm = (props: Props) => {
-  const { register, handleSubmit, control, setValue, getValues } = useForm<
-    SellerShopConfig["sendgridConfiguration"]
-  >({
-    defaultValues: props.initialData ?? undefined,
-  });
+  const { register, handleSubmit, control, setValue, getValues, reset } =
+    useForm<SendgridConfiguration>({
+      defaultValues: props.initialData,
+    });
+
+  // when the configuration tab is changed, initialData change and form has to be updated
+  useEffect(() => {
+    reset(props.initialData);
+  }, [props.initialData]);
 
   const fetchTemplates = async () => {
-    console.log("key", props.initialData?.apiKey);
-    const res = await fetch(
+    const response = await fetch(
       "https://api.sendgrid.com/v3/templates?generations=dynamic&page_size=18",
       {
         method: "GET",
@@ -55,14 +55,14 @@ export const SendgridConfigurationForm = (props: Props) => {
         },
       }
     );
-    const resJson = await res.json();
-    console.log(resJson);
+    const resJson = (await response.json()) as {
+      result?: { id: string; name: string }[];
+    };
     const templates =
-      resJson.result?.map((r) => ({ value: r.id, label: r.name })) ||
-      ([] as {
-        value: string;
-        label: string;
-      }[]);
+      resJson.result?.map((r) => ({
+        value: r.id,
+        label: r.name,
+      })) || [];
     return templates;
   };
 
@@ -79,20 +79,13 @@ export const SendgridConfigurationForm = (props: Props) => {
   console.log(isLoading, templateChoices, error);
 
   const styles = useStyles();
-  const { appBridge } = useAppBridge();
 
   const CommonFieldProps: TextFieldProps = {
     className: styles.field,
     fullWidth: true,
   };
 
-  const handleChannelNameClick = () => {
-    appBridge?.dispatch(
-      actions.Redirect({
-        to: `/channels/${props.channelID}`,
-      })
-    );
-  };
+  const isNewConfiguration = !props.configurationId;
 
   return (
     <form
@@ -101,13 +94,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       })}
       className={styles.form}
     >
-      <Typography variant="body1" paragraph>
-        Configure Sendgrid
-        <strong onClick={handleChannelNameClick} className={styles.channelName}>
-          {` ${props.channelName} `}
-        </strong>
-        channel:
-      </Typography>
+      {isNewConfiguration ? (
+        <Typography variant="h4" paragraph>
+          Create a new configuration
+        </Typography>
+      ) : (
+        <Typography variant="h4" paragraph>
+          Configuration {props.initialData?.configurationName}
+        </Typography>
+      )}
       <Controller
         control={control}
         name="active"
@@ -152,6 +147,11 @@ export const SendgridConfigurationForm = (props: Props) => {
           );
         }}
       />
+      <TextField
+        label="Configuration name"
+        {...CommonFieldProps}
+        {...register("configurationName")}
+      />
       <TextField label="Sender name" {...CommonFieldProps} {...register("senderName")} />
       <TextField label="Sender email" {...CommonFieldProps} {...register("senderEmail")} />
       <TextField label="API Key" {...CommonFieldProps} {...register("apiKey")} />
@@ -160,14 +160,6 @@ export const SendgridConfigurationForm = (props: Props) => {
         {...CommonFieldProps}
         {...register("templateOrderCreatedSubject")}
       />
-      {/* <TextField
-        label="Order Created Email template"
-        multiline={true}
-        minRows={20}
-        maxRows={50}
-        {...CommonFieldProps}
-        {...register("templateOrderCreatedTemplate")}
-      /> */}
 
       <Controller
         control={control}
@@ -183,7 +175,7 @@ export const SendgridConfigurationForm = (props: Props) => {
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
-                  setValue(`templateOrderCreatedTemplate`, event.target.value);
+                  setValue(`templateOrderCreatedTemplate`, event.target.value as string);
                   return onChange(event.target.value);
                 }}
               >
@@ -217,7 +209,7 @@ export const SendgridConfigurationForm = (props: Props) => {
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
-                  setValue(`templateOrderFulfilledTemplate`, event.target.value);
+                  setValue(`templateOrderFulfilledTemplate`, event.target.value as string);
                   return onChange(event.target.value);
                 }}
               >
@@ -234,7 +226,7 @@ export const SendgridConfigurationForm = (props: Props) => {
       />
 
       <Button type="submit" fullWidth variant="primary">
-        Save channel configuration
+        Save configuration
       </Button>
     </form>
   );

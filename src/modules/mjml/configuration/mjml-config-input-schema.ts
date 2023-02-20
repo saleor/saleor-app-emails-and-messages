@@ -1,22 +1,29 @@
 import { z } from "zod";
 
 export const mjmlConfigInputSchema = z.object({
-  shopConfigPerChannel: z.record(
+  availableConfigurations: z.record(
     z.object({
-      mjmlConfiguration: z.object({
-        active: z.boolean(),
-        senderName: z.string().min(0),
-        senderEmail: z.string().min(0),
-        smtpHost: z.string().min(0),
-        smtpPort: z.string().min(0),
-        smtpUser: z.string().min(0),
-        useTls: z.boolean(),
-        useSsl: z.boolean(),
-        templateOrderCreatedSubject: z.string().min(0),
-        templateOrderCreatedTemplate: z.string().min(0),
-        templateOrderFulfilledSubject: z.string().min(0),
-        templateOrderFulfilledTemplate: z.string().min(0),
-      }),
+      active: z.boolean(),
+      configurationName: z.string(),
+      senderName: z.string(),
+      senderEmail: z.string(),
+      smtpHost: z.string(),
+      smtpPort: z.string(),
+      smtpUser: z.string().min(0),
+      useTls: z.boolean(),
+      useSsl: z.boolean(),
+      templateInvoiceSentSubject: z.string(),
+      templateInvoiceSentTemplate: z.string(),
+      templateOrderCancelledSubject: z.string(),
+      templateOrderCancelledTemplate: z.string(),
+      templateOrderConfirmedSubject: z.string(),
+      templateOrderConfirmedTemplate: z.string(),
+      templateOrderFullyPaidSubject: z.string(),
+      templateOrderFullyPaidTemplate: z.string(),
+      templateOrderCreatedSubject: z.string(),
+      templateOrderCreatedTemplate: z.string(),
+      templateOrderFulfilledSubject: z.string(),
+      templateOrderFulfilledTemplate: z.string(),
     })
   ),
 });

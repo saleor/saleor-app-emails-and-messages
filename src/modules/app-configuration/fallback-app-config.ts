@@ -1,5 +1,5 @@
 import { AppConfig } from "./app-config";
-import { AppConfigContainer } from "./app-config-container";
+import { AppConfigContainer, getDefaultEmptyAppConfiguration } from "./app-config-container";
 import { ChannelFragment, ShopInfoFragment } from "../../../generated/graphql";
 
 /**
@@ -12,9 +12,9 @@ export const FallbackAppConfig = {
   ) {
     return (channels ?? []).reduce<AppConfig>(
       (state, channel) => {
-        return AppConfigContainer.setChannelAppConfiguration(state)(channel.slug)({
-          active: "",
-        });
+        return AppConfigContainer.setChannelAppConfiguration(state)(channel.slug)(
+          getDefaultEmptyAppConfiguration()
+        );
       },
       { shopConfigPerChannel: {} }
     );

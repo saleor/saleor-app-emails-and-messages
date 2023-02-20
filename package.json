@@ -12,7 +12,7 @@
     "test": "vitest"
   },
   "saleor": {
-    "schemaVersion": "3.10"
+    "schemaVersion": "3.11.7"
   },
   "dependencies": {
     "@material-ui/core": "^4.12.4",

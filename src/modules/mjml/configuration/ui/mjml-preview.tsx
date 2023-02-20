@@ -11,11 +11,15 @@ export const MjmlPreview = ({ value }: Props) => {
 
   useEffect(() => {
     const mjml2html = require("mjml-browser");
-    setCompiledTemplate(mjml2html(value).html);
+    try {
+      setCompiledTemplate(mjml2html(value).html);
+    } catch (error) {
+      console.error("Error during compiling the template");
+    }
   }, [value]);
 
   return (
-    <Card style={{ padding: "2rem" }}>
+    <Card style={{ padding: "2rem", width: "100%" }}>
       {!!compiledTemplate.length && <div dangerouslySetInnerHTML={{ __html: compiledTemplate }} />}
     </Card>
   );

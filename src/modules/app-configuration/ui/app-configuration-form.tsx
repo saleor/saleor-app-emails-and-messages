@@ -1,8 +1,17 @@
 import { SellerShopConfig } from "../app-config";
 import { Controller, useForm } from "react-hook-form";
-import { FormControlLabel, Switch, TextFieldProps, Typography } from "@material-ui/core";
+import {
+  FormControl,
+  FormControlLabel,
+  InputLabel,
+  MenuItem,
+  Select,
+  Switch,
+  TextFieldProps,
+  Typography,
+} from "@material-ui/core";
 import { Button, makeStyles } from "@saleor/macaw-ui";
-import React from "react";
+import React, { useEffect } from "react";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
 
 const useStyles = makeStyles({
@@ -22,16 +31,23 @@ type Props = {
   channelSlug: string;
   channelName: string;
   channelID: string;
+  mjmlConfigurationChoices: { label: string; value: string }[];
+  sendgridConfigurationChoices: { label: string; value: string }[];
   onSubmit(data: SellerShopConfig["appConfiguration"]): Promise<void>;
   initialData?: SellerShopConfig["appConfiguration"] | null;
 };
 
 export const AppConfigurationForm = (props: Props) => {
-  const { register, handleSubmit, getValues, setValue, control } = useForm<
+  const { handleSubmit, getValues, setValue, control, reset } = useForm<
     SellerShopConfig["appConfiguration"]
   >({
     defaultValues: props.initialData ?? undefined,
   });
+
+  useEffect(() => {
+    reset(props.initialData || undefined);
+  }, [props.initialData]);
+
   const styles = useStyles();
   const { appBridge } = useAppBridge();
 
@@ -81,6 +97,64 @@ export const AppConfigurationForm = (props: Props) => {
               }
               label="Active"
             />
+          );
+        }}
+      />
+
+      <Controller
+        control={control}
+        name="mjmlConfigurationId"
+        defaultValue={getValues("mjmlConfigurationId")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControl className={styles.field} fullWidth>
+              <InputLabel id="demo-simple-select-label">MJML Configuration</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                variant="outlined"
+                value={value}
+                onChange={(event, val) => {
+                  setValue("mjmlConfigurationId", event.target.value as string);
+                  return onChange(event.target.value);
+                }}
+              >
+                {props.mjmlConfigurationChoices.map((choice) => (
+                  <MenuItem key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          );
+        }}
+      />
+
+      <Controller
+        control={control}
+        name="sendgridConfigurationId"
+        defaultValue={getValues("sendgridConfigurationId")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControl className={styles.field} fullWidth>
+              <InputLabel id="demo-simple-select-label">Sendgrid Configuration</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                variant="outlined"
+                value={value}
+                onChange={(event, val) => {
+                  setValue("sendgridConfigurationId", event.target.value as string);
+                  return onChange(event.target.value);
+                }}
+              >
+                {props.sendgridConfigurationChoices.map((choice) => (
+                  <MenuItem key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           );
         }}
       />

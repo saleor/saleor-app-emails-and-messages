@@ -27,9 +27,42 @@ const useStyles = makeStyles((theme) => {
 export const ChannelsConfigurationTab = () => {
   const styles = useStyles();
   const { appBridge } = useAppBridge();
+  const [mjmlConfigurationsListData, setMjmlConfigurationsListData] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  const [sendgridConfigurationsListData, setSendgridConfigurationsListData] = useState<
+    { label: string; value: string }[]
+  >([]);
 
   const { data: configurationData, refetch: refetchConfig } =
     trpcClient.appConfiguration.fetch.useQuery();
+
+  trpcClient.mjmlConfiguration.fetch.useQuery(undefined, {
+    onSuccess(data) {
+      const keys = Object.keys(data.availableConfigurations);
+
+      setMjmlConfigurationsListData(
+        keys.map((key) => ({
+          value: key,
+          label: data.availableConfigurations[key].configurationName,
+        }))
+      );
+    },
+  });
+
+  trpcClient.sendgridConfiguration.fetch.useQuery(undefined, {
+    onSuccess(data) {
+      const keys = Object.keys(data.availableConfigurations);
+
+      setSendgridConfigurationsListData(
+        keys.map((key) => ({
+          value: key,
+          label: data.availableConfigurations[key].configurationName,
+        }))
+      );
+    },
+  });
 
   const channels = trpcClient.channels.fetch.useQuery();
 
@@ -84,6 +117,8 @@ export const ChannelsConfigurationTab = () => {
               channelID={activeChannel.id}
               key={activeChannelSlug}
               channelSlug={activeChannel.slug}
+              mjmlConfigurationChoices={mjmlConfigurationsListData}
+              sendgridConfigurationChoices={sendgridConfigurationsListData}
               onSubmit={async (data) => {
                 const newConfig = AppConfigContainer.setChannelAppConfiguration(configurationData)(
                   activeChannel.slug

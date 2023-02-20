@@ -1,12 +1,17 @@
-import { MjmlConfig, SellerShopConfig } from "./mjml-config";
+import { MjmlConfig, MjmlConfiguration } from "./mjml-config";
 import {
+  defaultInvoiceSentMjmlTemplate,
+  defaultOrderCancelledMjmlTemplate,
+  defaultOrderConfirmedMjmlTemplate,
   defaultOrderCreatedMjmlTemplate,
   defaultOrderFulfilledMjmlTemplate,
+  defaultOrderFullyPaidMjmlTemplate,
 } from "../default-templates";
 
-export const getDefaultEmptyMjmlConfiguration = (): SellerShopConfig["mjmlConfiguration"] => {
+export const getDefaultEmptyMjmlConfiguration = (): MjmlConfiguration => {
   const defaultConfig = {
-    active: false,
+    active: true,
+    configurationName: "",
     senderName: "",
     senderEmail: "",
     smtpHost: "",
@@ -14,54 +19,51 @@ export const getDefaultEmptyMjmlConfiguration = (): SellerShopConfig["mjmlConfig
     smtpUser: "",
     useTls: false,
     useSsl: false,
-    templateOrderCreatedSubject: "Order confirmed",
+    templateInvoiceSentSubject: "Invoice sent",
+    templateInvoiceSentTemplate: defaultInvoiceSentMjmlTemplate,
+    templateOrderCancelledSubject: "Order Cancelled",
+    templateOrderCancelledTemplate: defaultOrderCancelledMjmlTemplate,
+    templateOrderConfirmedSubject: "Order Confirmed",
+    templateOrderConfirmedTemplate: defaultOrderConfirmedMjmlTemplate,
+    templateOrderFullyPaidSubject: "Order Fully Paid",
+    templateOrderFullyPaidTemplate: defaultOrderFullyPaidMjmlTemplate,
+    templateOrderCreatedSubject: "Order created",
     templateOrderCreatedTemplate: defaultOrderCreatedMjmlTemplate,
     templateOrderFulfilledSubject: "Order fulfilled",
     templateOrderFulfilledTemplate: defaultOrderFulfilledMjmlTemplate,
   };
 
-  if (process.env.NODE_ENV === "development") {
-    return {
-      ...defaultConfig,
-      active: true,
-      senderName: "Development Sender",
-      senderEmail: "dev@example.com",
-      smtpHost: "localhost",
-      smtpPort: "1025",
-    };
-  }
-
   return defaultConfig;
 };
 
-const getChannelMjmlConfiguration =
-  (mjmlConfig: MjmlConfig | null | undefined) => (channelSlug: string) => {
-    try {
-      // TODO: Should default empty config be returned here?
-      return (
-        mjmlConfig?.shopConfigPerChannel[channelSlug].mjmlConfiguration ??
-        getDefaultEmptyMjmlConfiguration()
-      );
-    } catch (e) {
-      return null;
+const getMjmlConfigurationById =
+  (mjmlConfig: MjmlConfig | null | undefined) => (configurationId?: string) => {
+    if (!configurationId?.length) {
+      return getDefaultEmptyMjmlConfiguration();
     }
+    const existingConfig = mjmlConfig?.availableConfigurations[configurationId];
+    if (!existingConfig) {
+      return getDefaultEmptyMjmlConfiguration();
+    }
+    return existingConfig;
   };
 
-const setChannelMjmlConfiguration =
+const setMjmlConfigurationById =
   (mjmlConfig: MjmlConfig | null | undefined) =>
-  (channelSlug: string) =>
-  (mjmlConfiguration: SellerShopConfig["mjmlConfiguration"]) => {
-    const mjmlConfigNormalized = structuredClone(mjmlConfig) ?? { shopConfigPerChannel: {} };
+  (configurationId: string | undefined) =>
+  (mjmlConfiguration: MjmlConfiguration) => {
+    const mjmlConfigNormalized = structuredClone(mjmlConfig) ?? { availableConfigurations: {} };
 
-    mjmlConfigNormalized.shopConfigPerChannel[channelSlug] ??= {
-      mjmlConfiguration: getDefaultEmptyMjmlConfiguration(),
-    };
-    mjmlConfigNormalized.shopConfigPerChannel[channelSlug].mjmlConfiguration = mjmlConfiguration;
+    // for creating a new configurations, the ID has to be generated
+    const id = configurationId || Date.now();
+    mjmlConfigNormalized.availableConfigurations[id] ??= getDefaultEmptyMjmlConfiguration();
+
+    mjmlConfigNormalized.availableConfigurations[id] = mjmlConfiguration;
 
     return mjmlConfigNormalized;
   };
 
 export const MjmlConfigContainer = {
-  getChannelMjmlConfiguration: getChannelMjmlConfiguration,
-  setChannelMjmlConfiguration: setChannelMjmlConfiguration,
+  getMjmlConfigurationById,
+  setMjmlConfigurationById,
 };

@@ -1,7 +1,9 @@
 import { AppConfig, SellerShopConfig } from "./app-config";
 
-const getDefaultEmptyAppConfiguration = (): SellerShopConfig["appConfiguration"] => ({
+export const getDefaultEmptyAppConfiguration = (): SellerShopConfig["appConfiguration"] => ({
   active: false,
+  mjmlConfigurationId: undefined,
+  sendgridConfigurationId: undefined,
 });
 
 const getChannelAppConfiguration =

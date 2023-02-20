@@ -1,1 +1,7 @@
-export type MessageEventTypes = "ORDER_CREATED" | "ORDER_FULFILLED";
+export type MessageEventTypes =
+  | "ORDER_CREATED"
+  | "ORDER_FULFILLED"
+  | "ORDER_CONFIRMED"
+  | "ORDER_CANCELLED"
+  | "ORDER_FULLY_PAID"
+  | "INVOICE_SENT";

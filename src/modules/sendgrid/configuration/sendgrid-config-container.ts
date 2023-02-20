@@ -1,64 +1,60 @@
-import { SendgridConfig as SendgridConfig, SellerShopConfig } from "./sendgrid-config";
+import { SendgridConfig as SendgridConfig, SendgridConfiguration } from "./sendgrid-config";
 
-export const getDefaultEmptySendgridConfiguration =
-  (): SellerShopConfig["sendgridConfiguration"] => {
-    const defaultConfig = {
-      active: false,
-      sandboxMode: false,
-      senderName: "",
-      senderEmail: "",
-      apiKey: "",
-      templateOrderCreatedSubject: "Order confirmed",
-      templateOrderCreatedTemplate: "",
-      templateOrderFulfilledSubject: "Order fulfilled",
-      templateOrderFulfilledTemplate: "",
-    };
-
-    if (process.env.NODE_ENV === "development") {
-      return {
-        ...defaultConfig,
-        active: true,
-        sandboxMode: true,
-        senderName: "Development Sender",
-        senderEmail: (process.env.SENDGRID_SENDER_EMAIL as string) || "dev@example.com",
-        apiKey: process.env.SENDGRID_API_KEY as string,
-      };
-    }
-
-    return defaultConfig;
+export const getDefaultEmptySendgridConfiguration = (): SendgridConfiguration => {
+  const defaultConfig = {
+    active: false,
+    configurationName: "",
+    sandboxMode: false,
+    senderName: "",
+    senderEmail: "",
+    apiKey: "",
+    templateInvoiceSentSubject: "Invoice sent",
+    templateInvoiceSentTemplate: "",
+    templateOrderCancelledSubject: "Order Cancelled",
+    templateOrderCancelledTemplate: "",
+    templateOrderConfirmedSubject: "Order Confirmed",
+    templateOrderConfirmedTemplate: "",
+    templateOrderFullyPaidSubject: "Order Fully Paid",
+    templateOrderFullyPaidTemplate: "",
+    templateOrderCreatedSubject: "Order created",
+    templateOrderCreatedTemplate: "",
+    templateOrderFulfilledSubject: "Order fulfilled",
+    templateOrderFulfilledTemplate: "",
   };
 
-const getChannelSendgridConfiguration =
-  (sendgridConfig: SendgridConfig | null | undefined) => (channelSlug: string) => {
-    try {
-      // TODO: Should default empty config be returned here?
-      return (
-        sendgridConfig?.shopConfigPerChannel[channelSlug].sendgridConfiguration ??
-        getDefaultEmptySendgridConfiguration()
-      );
-    } catch (e) {
-      return null;
+  return defaultConfig;
+};
+
+const getSendgridConfigurationById =
+  (sendgridConfig: SendgridConfig | null | undefined) => (configurationId?: string) => {
+    if (!configurationId?.length) {
+      return getDefaultEmptySendgridConfiguration();
     }
+    const existingConfig = sendgridConfig?.availableConfigurations[configurationId];
+    if (!existingConfig) {
+      return getDefaultEmptySendgridConfiguration();
+    }
+    return existingConfig;
   };
 
-const setChannelSendgridConfiguration =
+const setSendgridConfigurationById =
   (sendgridConfig: SendgridConfig | null | undefined) =>
-  (channelSlug: string) =>
-  (sendgridConfiguration: SellerShopConfig["sendgridConfiguration"]) => {
+  (configurationId: string | undefined) =>
+  (sendgridConfiguration: SendgridConfiguration) => {
     const sendgridConfigNormalized = structuredClone(sendgridConfig) ?? {
-      shopConfigPerChannel: {},
+      availableConfigurations: {},
     };
 
-    sendgridConfigNormalized.shopConfigPerChannel[channelSlug] ??= {
-      sendgridConfiguration: getDefaultEmptySendgridConfiguration(),
-    };
-    sendgridConfigNormalized.shopConfigPerChannel[channelSlug].sendgridConfiguration =
-      sendgridConfiguration;
+    // for creating a new configurations, the ID has to be generated
+    const id = configurationId || Date.now();
+    sendgridConfigNormalized.availableConfigurations[id] ??= getDefaultEmptySendgridConfiguration();
+
+    sendgridConfigNormalized.availableConfigurations[id] = sendgridConfiguration;
 
     return sendgridConfigNormalized;
   };
 
 export const SendgridConfigContainer = {
-  getChannelSendgridConfiguration: getChannelSendgridConfiguration,
-  setChannelSendgridConfiguration: setChannelSendgridConfiguration,
+  getSendgridConfigurationById,
+  setSendgridConfigurationById,
 };

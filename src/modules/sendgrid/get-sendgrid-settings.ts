@@ -1,5 +1,6 @@
 import { AuthData } from "@saleor/app-sdk/APL";
 import { appRouter } from "../trpc/trpc-app-router";
+import { logger as pinoLogger } from "../../lib/logger";
 
 interface GetSendgridSettingsArgs {
   authData: AuthData;
@@ -7,6 +8,10 @@ interface GetSendgridSettingsArgs {
 }
 
 export const getSendgridSettings = async ({ authData, channel }: GetSendgridSettingsArgs) => {
+  const logger = pinoLogger.child({
+    fn: "getMjmlSettings",
+    channel,
+  });
   const caller = appRouter.createCaller({
     appId: authData.appId,
     saleorApiUrl: authData.saleorApiUrl,
@@ -14,9 +19,36 @@ export const getSendgridSettings = async ({ authData, channel }: GetSendgridSett
     ssr: true,
   });
 
-  const configurations = await caller.sendgridConfiguration.fetch();
+  const sendgridConfigurations = await caller.sendgridConfiguration.fetch();
+  const appConfigurations = await caller.appConfiguration.fetch();
 
-  const configuration = configurations.shopConfigPerChannel[channel];
+  const channelAppConfiguration = appConfigurations.shopConfigPerChannel[channel];
+  if (!channelAppConfiguration) {
+    logger.warn("App has no configuration for this channel");
+    return;
+  }
 
-  return configuration.sendgridConfiguration;
+  if (!channelAppConfiguration.appConfiguration.active) {
+    logger.warn("App configuration is not active for this channel");
+    return;
+  }
+
+  const sendgridConfigurationId = channelAppConfiguration.appConfiguration.sendgridConfigurationId;
+  if (!sendgridConfigurationId?.length) {
+    logger.warn("Sendgrid configuration has not been chosen for this channel");
+    return;
+  }
+
+  const configuration = sendgridConfigurations?.availableConfigurations[sendgridConfigurationId];
+  if (!configuration) {
+    logger.warn(`The Sendgrid configuration with id ${sendgridConfigurationId} does not exist`);
+    return;
+  }
+
+  if (!configuration.active) {
+    logger.warn(`The Sendgrid configuration ${configuration.configurationName} is not active`);
+    return;
+  }
+
+  return configuration;
 };

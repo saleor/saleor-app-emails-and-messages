@@ -1,20 +1,25 @@
 import { logger as pinoLogger } from "../../lib/logger";
 import { AuthData } from "@saleor/app-sdk/APL";
-import { SellerShopConfig } from "./configuration/mjml-config";
-import { getMjmlSettings } from "./get-mjml-settings";
+import { MjmlConfiguration } from "./configuration/mjml-config";
+import { getActiveMjmlSettings } from "./get-active-mjml-settings";
 import {
+  defaultInvoiceSentMjmlTemplate,
+  defaultOrderCancelledMjmlTemplate,
+  defaultOrderConfirmedMjmlTemplate,
   defaultOrderCreatedMjmlTemplate,
   defaultOrderFulfilledMjmlTemplate,
+  defaultOrderFullyPaidMjmlTemplate,
 } from "./default-templates";
 import { compileMjml } from "./compile-mjml";
 import { compileHandlebarsTemplate } from "./compile-handlebars-template";
 import { sendEmailWithSmtp } from "./send-email-with-smtp";
+import { MessageEventTypes } from "../event-handlers/message-event-types";
 
 interface SendMjmlArgs {
   authData: AuthData;
   channel: string;
   recipientEmail: string;
-  event: "ORDER_CREATED" | "ORDER_FULFILLED";
+  event: MessageEventTypes;
   payload: any;
 }
 
@@ -25,10 +30,7 @@ export interface EmailServiceResponse {
   }[];
 }
 
-const eventMapping = (
-  event: SendMjmlArgs["event"],
-  settings: SellerShopConfig["mjmlConfiguration"]
-) => {
+const eventMapping = (event: SendMjmlArgs["event"], settings: MjmlConfiguration) => {
   switch (event) {
     case "ORDER_CREATED":
       return {
@@ -39,6 +41,26 @@ const eventMapping = (
       return {
         template: settings.templateOrderFulfilledTemplate || defaultOrderFulfilledMjmlTemplate,
         subject: settings.templateOrderFulfilledSubject || "Order fulfilled",
+      };
+    case "ORDER_CONFIRMED":
+      return {
+        template: settings.templateOrderConfirmedTemplate || defaultOrderConfirmedMjmlTemplate,
+        subject: settings.templateOrderConfirmedSubject || "Order confirmed",
+      };
+    case "ORDER_CANCELLED":
+      return {
+        template: settings.templateOrderCancelledTemplate || defaultOrderCancelledMjmlTemplate,
+        subject: settings.templateOrderCancelledSubject || "Order cancelled",
+      };
+    case "ORDER_FULLY_PAID":
+      return {
+        template: settings.templateOrderFullyPaidTemplate || defaultOrderFullyPaidMjmlTemplate,
+        subject: settings.templateOrderFullyPaidSubject || "Order fully paid",
+      };
+    case "INVOICE_SENT":
+      return {
+        template: settings.templateInvoiceSentTemplate || defaultInvoiceSentMjmlTemplate,
+        subject: settings.templateInvoiceSentSubject || "Invoice sent",
       };
   }
 };
@@ -55,10 +77,17 @@ export const sendMjml = async ({
     event,
   });
 
-  const settings = await getMjmlSettings({ authData, channel });
+  const settings = await getActiveMjmlSettings({ authData, channel });
 
-  if (!settings.active) {
-    logger.debug("MJML is not active, skipping");
+  if (!settings) {
+    logger.debug("No active settings, skipping");
+    return {
+      errors: [
+        {
+          message: "No active settings",
+        },
+      ],
+    };
   }
 
   logger.debug("Sending an email using MJML");

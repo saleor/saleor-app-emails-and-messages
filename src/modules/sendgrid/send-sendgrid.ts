@@ -1,6 +1,6 @@
 import { logger as pinoLogger } from "../../lib/logger";
 import { AuthData } from "@saleor/app-sdk/APL";
-import { SellerShopConfig } from "./configuration/sendgrid-config";
+import { SendgridConfiguration } from "./configuration/sendgrid-config";
 import { getSendgridSettings } from "./get-sendgrid-settings";
 import { MailService } from "@sendgrid/mail";
 import { MessageEventTypes } from "../event-handlers/message-event-types";
@@ -20,10 +20,7 @@ export interface EmailServiceResponse {
   }[];
 }
 
-const eventMapping = (
-  event: SendSendgridArgs["event"],
-  settings: SellerShopConfig["sendgridConfiguration"]
-) => {
+const eventMapping = (event: SendSendgridArgs["event"], settings: SendgridConfiguration) => {
   switch (event) {
     case "ORDER_CREATED":
       return {
@@ -34,6 +31,26 @@ const eventMapping = (
       return {
         templateId: settings.templateOrderFulfilledTemplate,
         subject: settings.templateOrderFulfilledSubject || "Order fulfilled",
+      };
+    case "ORDER_CONFIRMED":
+      return {
+        template: settings.templateOrderConfirmedTemplate,
+        subject: settings.templateOrderConfirmedSubject || "Order confirmed",
+      };
+    case "ORDER_CANCELLED":
+      return {
+        template: settings.templateOrderCancelledTemplate,
+        subject: settings.templateOrderCancelledSubject || "Order cancelled",
+      };
+    case "ORDER_FULLY_PAID":
+      return {
+        template: settings.templateOrderFullyPaidTemplate,
+        subject: settings.templateOrderFullyPaidSubject || "Order fully paid",
+      };
+    case "INVOICE_SENT":
+      return {
+        template: settings.templateInvoiceSentTemplate,
+        subject: settings.templateInvoiceSentSubject || "Invoice sent",
       };
   }
 };
@@ -52,7 +69,7 @@ export const sendSendgrid = async ({
 
   const settings = await getSendgridSettings({ authData, channel });
 
-  if (!settings.active) {
+  if (!settings?.active) {
     logger.debug("Sendgrid is not active, skipping");
     return;
   }

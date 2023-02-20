@@ -19,7 +19,8 @@ export const MjmlEditor = ({ initialTemplate, onChange, value }: Props) => {
   return (
     <>
       <Editor
-        height="60vh"
+        height="40vh"
+        width="100%"
         value={value}
         defaultLanguage="xml"
         defaultValue={initialTemplate}

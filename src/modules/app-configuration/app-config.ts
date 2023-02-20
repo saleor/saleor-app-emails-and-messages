@@ -1,6 +1,8 @@
 export interface SellerShopConfig {
   appConfiguration: {
     active: boolean;
+    mjmlConfigurationId?: string;
+    sendgridConfigurationId?: string;
   };
 }
 
