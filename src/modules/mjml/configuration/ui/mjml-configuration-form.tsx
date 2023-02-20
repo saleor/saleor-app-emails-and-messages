@@ -75,14 +75,7 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <FormControlLabel
               control={
-                <Switch
-                  value={value}
-                  checked={value}
-                  onChange={(event, val) => {
-                    setValue(`active`, val);
-                    return onChange(val);
-                  }}
-                />
+                <Switch value={value} checked={value} onChange={(event, val) => onChange(val)} />
               }
               label="Active"
             />
@@ -170,14 +163,7 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <FormControlLabel
               control={
-                <Switch
-                  value={value}
-                  checked={value}
-                  onChange={(event, val) => {
-                    setValue(`useTls`, val);
-                    return onChange(val);
-                  }}
-                />
+                <Switch value={value} checked={value} onChange={(event, val) => onChange(val)} />
               }
               label="Use TLS"
             />
@@ -192,14 +178,7 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <FormControlLabel
               control={
-                <Switch
-                  value={value}
-                  checked={value}
-                  onChange={(event, val) => {
-                    setValue(`useSsl`, val);
-                    return onChange(val);
-                  }}
-                />
+                <Switch value={value} checked={value} onChange={(event, val) => onChange(val)} />
               }
               label="Use SSL"
             />
@@ -224,14 +203,10 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <>
               <div className={styles.editor}>
-                <MjmlEditor
-                  initialTemplate={value}
-                  value={value}
-                  onChange={(value) => setValue(`templateOrderCreatedTemplate`, value)}
-                />
+                <MjmlEditor initialTemplate={value} value={value} onChange={onChange} />
               </div>
               <div className={styles.preview}>
-                <MjmlPreview value={getValues("templateOrderCreatedTemplate")} />
+                <MjmlPreview value={value} />
               </div>
             </>
           );
@@ -251,14 +226,10 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <>
               <div className={styles.editor}>
-                <MjmlEditor
-                  initialTemplate={value}
-                  value={value}
-                  onChange={(value) => setValue(`templateOrderFulfilledTemplate`, value)}
-                />
+                <MjmlEditor initialTemplate={value} value={value} onChange={onChange} />
               </div>
               <div className={styles.preview}>
-                <MjmlPreview value={getValues("templateOrderFulfilledTemplate")} />{" "}
+                <MjmlPreview value={value} />{" "}
               </div>
             </>
           );
@@ -278,14 +249,10 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <>
               <div className={styles.editor}>
-                <MjmlEditor
-                  initialTemplate={value}
-                  value={value}
-                  onChange={(value) => setValue(`templateOrderConfirmedTemplate`, value)}
-                />
+                <MjmlEditor initialTemplate={value} value={value} onChange={onChange} />
               </div>
               <div className={styles.preview}>
-                <MjmlPreview value={getValues("templateOrderConfirmedTemplate")} />{" "}
+                <MjmlPreview value={value} />{" "}
               </div>
             </>
           );
@@ -305,14 +272,10 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <>
               <div className={styles.editor}>
-                <MjmlEditor
-                  initialTemplate={value}
-                  value={value}
-                  onChange={(value) => setValue(`templateOrderCancelledTemplate`, value)}
-                />
+                <MjmlEditor initialTemplate={value} value={value} onChange={onChange} />
               </div>
               <div className={styles.preview}>
-                <MjmlPreview value={getValues("templateOrderCancelledTemplate")} />{" "}
+                <MjmlPreview value={value} />{" "}
               </div>
             </>
           );
@@ -332,14 +295,10 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <>
               <div className={styles.editor}>
-                <MjmlEditor
-                  initialTemplate={value}
-                  value={value}
-                  onChange={(value) => setValue(`templateOrderFullyPaidTemplate`, value)}
-                />
+                <MjmlEditor initialTemplate={value} value={value} onChange={onChange} />
               </div>
               <div className={styles.preview}>
-                <MjmlPreview value={getValues("templateOrderFullyPaidTemplate")} />{" "}
+                <MjmlPreview value={value} />{" "}
               </div>
             </>
           );
@@ -359,14 +318,10 @@ export const MjmlConfigurationForm = (props: Props) => {
           return (
             <>
               <div className={styles.editor}>
-                <MjmlEditor
-                  initialTemplate={value}
-                  value={value}
-                  onChange={(value) => setValue(`templateInvoiceSentTemplate`, value)}
-                />
+                <MjmlEditor initialTemplate={value} value={value} onChange={onChange} />
               </div>
               <div className={styles.preview}>
-                <MjmlPreview value={getValues("templateInvoiceSentTemplate")} />{" "}
+                <MjmlPreview value={value} />{" "}
               </div>
             </>
           );

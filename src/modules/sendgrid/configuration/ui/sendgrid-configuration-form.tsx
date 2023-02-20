@@ -124,14 +124,7 @@ export const SendgridConfigurationForm = (props: Props) => {
           return (
             <FormControlLabel
               control={
-                <Switch
-                  value={value}
-                  checked={value}
-                  onChange={(event, val) => {
-                    setValue(`active`, val);
-                    return onChange(val);
-                  }}
-                />
+                <Switch value={value} checked={value} onChange={(event, val) => onChange(val)} />
               }
               label="Active"
             />
@@ -146,14 +139,7 @@ export const SendgridConfigurationForm = (props: Props) => {
           return (
             <FormControlLabel
               control={
-                <Switch
-                  value={value}
-                  checked={value}
-                  onChange={(event, val) => {
-                    setValue(`sandboxMode`, val);
-                    return onChange(val);
-                  }}
-                />
+                <Switch value={value} checked={value} onChange={(event, val) => onChange(val)} />
               }
               label="Sandbox mode"
             />
@@ -217,10 +203,7 @@ export const SendgridConfigurationForm = (props: Props) => {
               <Select
                 variant="outlined"
                 value={value}
-                onChange={(event, val) => {
-                  setValue(`templateOrderCreatedTemplate`, event.target.value as string);
-                  return onChange(event.target.value);
-                }}
+                onChange={(event, val) => onChange(event.target.value)}
               >
                 {!!templateChoices?.length &&
                   templateChoices.map((choice) => (
@@ -258,10 +241,7 @@ export const SendgridConfigurationForm = (props: Props) => {
               <Select
                 variant="outlined"
                 value={value}
-                onChange={(event, val) => {
-                  setValue(`templateOrderFulfilledTemplate`, event.target.value as string);
-                  return onChange(event.target.value);
-                }}
+                onChange={(event, val) => onChange(event.target.value)}
               >
                 {!!templateChoices?.length &&
                   templateChoices.map((choice) => (
@@ -299,10 +279,7 @@ export const SendgridConfigurationForm = (props: Props) => {
               <Select
                 variant="outlined"
                 value={value}
-                onChange={(event, val) => {
-                  setValue(`templateOrderConfirmedTemplate`, event.target.value as string);
-                  return onChange(event.target.value);
-                }}
+                onChange={(event, val) => onChange(event.target.value)}
               >
                 {!!templateChoices?.length &&
                   templateChoices.map((choice) => (
@@ -340,10 +317,7 @@ export const SendgridConfigurationForm = (props: Props) => {
               <Select
                 variant="outlined"
                 value={value}
-                onChange={(event, val) => {
-                  setValue(`templateOrderCancelledTemplate`, event.target.value as string);
-                  return onChange(event.target.value);
-                }}
+                onChange={(event, val) => onChange(event.target.value)}
               >
                 {!!templateChoices?.length &&
                   templateChoices.map((choice) => (
@@ -381,10 +355,7 @@ export const SendgridConfigurationForm = (props: Props) => {
               <Select
                 variant="outlined"
                 value={value}
-                onChange={(event, val) => {
-                  setValue(`templateOrderFullyPaidTemplate`, event.target.value as string);
-                  return onChange(event.target.value);
-                }}
+                onChange={(event, val) => onChange(event.target.value)}
               >
                 {!!templateChoices?.length &&
                   templateChoices.map((choice) => (
@@ -422,10 +393,7 @@ export const SendgridConfigurationForm = (props: Props) => {
               <Select
                 variant="outlined"
                 value={value}
-                onChange={(event, val) => {
-                  setValue(`templateInvoiceSentTemplate`, event.target.value as string);
-                  return onChange(event.target.value);
-                }}
+                onChange={(event, val) => onChange(event.target.value)}
               >
                 {!!templateChoices?.length &&
                   templateChoices.map((choice) => (
