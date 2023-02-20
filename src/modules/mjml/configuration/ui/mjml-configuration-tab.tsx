@@ -92,8 +92,6 @@ export const MjmlConfigurationTab = () => {
                   MjmlConfigContainer.setMjmlConfigurationById(configurationData)(
                     activeConfigurationId
                   )(data);
-                console.log("NEW CONFIG", newConfig);
-
                 mutate(newConfig);
               }}
               initialData={initialData}

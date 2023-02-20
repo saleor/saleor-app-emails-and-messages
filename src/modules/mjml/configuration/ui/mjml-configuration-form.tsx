@@ -50,7 +50,6 @@ export const MjmlConfigurationForm = (props: Props) => {
   };
 
   const isNewConfiguration = !props.configurationId;
-  console.log("is new", props.configurationId);
 
   return (
     <form

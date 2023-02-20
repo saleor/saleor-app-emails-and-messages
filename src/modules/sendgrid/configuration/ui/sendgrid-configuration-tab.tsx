@@ -100,8 +100,6 @@ export const SendgridConfigurationTab = () => {
                   SendgridConfigContainer.setSendgridConfigurationById(configurationData)(
                     activeConfigurationId
                   )(data);
-                console.log("NEW CONFIG", newConfig);
-
                 mutate(newConfig);
               }}
               initialData={initialData}
