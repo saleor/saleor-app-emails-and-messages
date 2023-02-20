@@ -3,8 +3,6 @@ import {
   FormControl,
   FormControlLabel,
   InputLabel,
-  MenuItem,
-  Select,
   Switch,
   TextField,
   TextFieldProps,
@@ -14,6 +12,8 @@ import { Button, makeStyles } from "@saleor/macaw-ui";
 import React, { useEffect } from "react";
 import { SendgridConfiguration } from "../sendgrid-config";
 import { useQuery } from "@tanstack/react-query";
+import { TemplateSelectionField } from "./template-selection-field";
+import { fetchTemplates } from "./fetch-templates";
 
 const useStyles = makeStyles({
   field: {
@@ -21,10 +21,6 @@ const useStyles = makeStyles({
   },
   form: {
     padding: 20,
-  },
-  channelName: {
-    fontFamily: "monospace",
-    cursor: "pointer",
   },
 });
 
@@ -35,59 +31,18 @@ type Props = {
 };
 
 export const SendgridConfigurationForm = (props: Props) => {
-  const { register, handleSubmit, control, setValue, getValues, reset } =
-    useForm<SendgridConfiguration>({
-      defaultValues: props.initialData,
-    });
+  const { handleSubmit, control, reset } = useForm<SendgridConfiguration>({
+    defaultValues: props.initialData,
+  });
 
   // when the configuration tab is changed, initialData change and form has to be updated
   useEffect(() => {
     reset(props.initialData);
   }, [props.initialData]);
 
-  const fetchTemplates = async () => {
-    if (!props.initialData?.apiKey) {
-      console.warn(
-        "The Sendgrid API key has not been set up yet. Skipping fetching available templates."
-      );
-      return [];
-    }
-    const response = await fetch(
-      "https://api.sendgrid.com/v3/templates?generations=dynamic&page_size=18",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${props.initialData?.apiKey}`,
-        },
-      }
-    );
-    if (!response.ok) {
-      console.error("Could not fetch available Sendgrid templates");
-      return [];
-    }
-    try {
-      const resJson = (await response.json()) as {
-        result?: { id: string; name: string }[];
-      };
-      const templates =
-        resJson.result?.map((r) => ({
-          value: r.id,
-          label: r.name,
-        })) || [];
-      return templates;
-    } catch (e) {
-      console.error("Could not parse the response from Sendgrid", e);
-      return [];
-    }
-  };
-
-  const {
-    data: templateChoices,
-    error,
-    isLoading,
-  } = useQuery({
+  const { data: templateChoices, isLoading: isTemplateChoicesLoading } = useQuery({
     queryKey: ["sendgridTemplates"],
-    queryFn: fetchTemplates,
+    queryFn: fetchTemplates({ apiKey: props.initialData.apiKey }),
     enabled: !!props.initialData?.apiKey.length,
   });
 
@@ -119,7 +74,6 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="active"
-        defaultValue={getValues("active")}
         render={({ field: { value, onChange } }) => {
           return (
             <FormControlLabel
@@ -134,7 +88,6 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="sandboxMode"
-        defaultValue={getValues("sandboxMode")}
         render={({ field: { value, onChange } }) => {
           return (
             <FormControlLabel
@@ -195,23 +148,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderCreatedTemplate"
-        defaultValue={getValues("templateOrderCreatedTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
-            <FormControl className={styles.field} fullWidth>
+            <FormControl className={styles.field} disabled={isTemplateChoicesLoading} fullWidth>
               <InputLabel>Template for Order Created</InputLabel>
-              <Select
-                variant="outlined"
+              <TemplateSelectionField
                 value={value}
-                onChange={(event, val) => onChange(event.target.value)}
-              >
-                {!!templateChoices?.length &&
-                  templateChoices.map((choice) => (
-                    <MenuItem key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </MenuItem>
-                  ))}
-              </Select>
+                onChange={onChange}
+                templateChoices={templateChoices}
+              />
             </FormControl>
           );
         }}
@@ -233,23 +178,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderFulfilledTemplate"
-        defaultValue={getValues("templateOrderFulfilledTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
-            <FormControl className={styles.field} fullWidth>
+            <FormControl className={styles.field} disabled={isTemplateChoicesLoading} fullWidth>
               <InputLabel>Template for Order Fulfilled</InputLabel>
-              <Select
-                variant="outlined"
+              <TemplateSelectionField
                 value={value}
-                onChange={(event, val) => onChange(event.target.value)}
-              >
-                {!!templateChoices?.length &&
-                  templateChoices.map((choice) => (
-                    <MenuItem key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </MenuItem>
-                  ))}
-              </Select>
+                onChange={onChange}
+                templateChoices={templateChoices}
+              />
             </FormControl>
           );
         }}
@@ -271,23 +208,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderConfirmedTemplate"
-        defaultValue={getValues("templateOrderConfirmedTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
-            <FormControl className={styles.field} fullWidth>
+            <FormControl className={styles.field} disabled={isTemplateChoicesLoading} fullWidth>
               <InputLabel>Template for Order Confirmed</InputLabel>
-              <Select
-                variant="outlined"
+              <TemplateSelectionField
                 value={value}
-                onChange={(event, val) => onChange(event.target.value)}
-              >
-                {!!templateChoices?.length &&
-                  templateChoices.map((choice) => (
-                    <MenuItem key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </MenuItem>
-                  ))}
-              </Select>
+                onChange={onChange}
+                templateChoices={templateChoices}
+              />
             </FormControl>
           );
         }}
@@ -309,23 +238,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderCancelledTemplate"
-        defaultValue={getValues("templateOrderCancelledTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
-            <FormControl className={styles.field} fullWidth>
+            <FormControl className={styles.field} disabled={isTemplateChoicesLoading} fullWidth>
               <InputLabel>Template for Order Cancelled</InputLabel>
-              <Select
-                variant="outlined"
+              <TemplateSelectionField
                 value={value}
-                onChange={(event, val) => onChange(event.target.value)}
-              >
-                {!!templateChoices?.length &&
-                  templateChoices.map((choice) => (
-                    <MenuItem key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </MenuItem>
-                  ))}
-              </Select>
+                onChange={onChange}
+                templateChoices={templateChoices}
+              />
             </FormControl>
           );
         }}
@@ -347,23 +268,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderFullyPaidTemplate"
-        defaultValue={getValues("templateOrderFullyPaidTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
-            <FormControl className={styles.field} fullWidth>
+            <FormControl className={styles.field} disabled={isTemplateChoicesLoading} fullWidth>
               <InputLabel>Template for Order Fully Paid</InputLabel>
-              <Select
-                variant="outlined"
+              <TemplateSelectionField
                 value={value}
-                onChange={(event, val) => onChange(event.target.value)}
-              >
-                {!!templateChoices?.length &&
-                  templateChoices.map((choice) => (
-                    <MenuItem key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </MenuItem>
-                  ))}
-              </Select>
+                onChange={onChange}
+                templateChoices={templateChoices}
+              />
             </FormControl>
           );
         }}
@@ -385,23 +298,15 @@ export const SendgridConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateInvoiceSentTemplate"
-        defaultValue={getValues("templateInvoiceSentTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
-            <FormControl className={styles.field} fullWidth>
+            <FormControl className={styles.field} disabled={isTemplateChoicesLoading} fullWidth>
               <InputLabel>Template for Invoice Sent</InputLabel>
-              <Select
-                variant="outlined"
+              <TemplateSelectionField
                 value={value}
-                onChange={(event, val) => onChange(event.target.value)}
-              >
-                {!!templateChoices?.length &&
-                  templateChoices.map((choice) => (
-                    <MenuItem key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </MenuItem>
-                  ))}
-              </Select>
+                onChange={onChange}
+                templateChoices={templateChoices}
+              />
             </FormControl>
           );
         }}

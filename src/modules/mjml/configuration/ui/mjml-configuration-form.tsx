@@ -19,10 +19,6 @@ const useStyles = makeStyles({
   form: {
     padding: 20,
   },
-  channelName: {
-    fontFamily: "monospace",
-    cursor: "pointer",
-  },
 });
 
 type Props = {
@@ -158,7 +154,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="useTls"
-        defaultValue={getValues("useTls")}
         render={({ field: { value, onChange } }) => {
           return (
             <FormControlLabel
@@ -173,7 +168,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="useSsl"
-        defaultValue={getValues("useSsl")}
         render={({ field: { value, onChange } }) => {
           return (
             <FormControlLabel
@@ -198,7 +192,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderCreatedTemplate"
-        defaultValue={getValues("templateOrderCreatedTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
             <>
@@ -221,7 +214,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderFulfilledTemplate"
-        defaultValue={getValues("templateOrderFulfilledTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
             <>
@@ -244,7 +236,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderConfirmedTemplate"
-        defaultValue={getValues("templateOrderConfirmedTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
             <>
@@ -267,7 +258,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderCancelledTemplate"
-        defaultValue={getValues("templateOrderCancelledTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
             <>
@@ -290,7 +280,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateOrderFullyPaidTemplate"
-        defaultValue={getValues("templateOrderFullyPaidTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
             <>
@@ -313,7 +302,6 @@ export const MjmlConfigurationForm = (props: Props) => {
       <Controller
         control={control}
         name="templateInvoiceSentTemplate"
-        defaultValue={getValues("templateInvoiceSentTemplate")}
         render={({ field: { value, onChange } }) => {
           return (
             <>
