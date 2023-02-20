@@ -18,7 +18,6 @@ export const appConfigurationRouter = router({
     }).getConfiguration();
   }),
   setAndReplace: protectedClientProcedure
-    // TODO: Update the permissions required to change the app settings
     .meta({ requiredClientPermissions: ["MANAGE_APPS"] })
     .input(appConfigInputSchema)
     .mutation(async ({ ctx, input }) => {
