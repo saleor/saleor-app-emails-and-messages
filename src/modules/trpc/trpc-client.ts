@@ -19,6 +19,13 @@ export const trpcClient = createTRPCNext<AppRouter>({
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
           headers() {
+            const { token, saleorApiUrl } = appBridgeInstance?.getState() || {};
+            if (!token || !saleorApiUrl) {
+              console.error(
+                "Can't initialize tRPC client before establishing the App Bridge connection"
+              );
+              throw new Error("Token and Saleor API URL unknown");
+            }
             return {
               /**
                * Attach headers from app to client requests, so tRPC can add them to context
