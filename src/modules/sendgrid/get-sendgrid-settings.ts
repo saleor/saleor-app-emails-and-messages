@@ -22,18 +22,18 @@ export const getSendgridSettings = async ({ authData, channel }: GetSendgridSett
   const sendgridConfigurations = await caller.sendgridConfiguration.fetch();
   const appConfigurations = await caller.appConfiguration.fetch();
 
-  const channelAppConfiguration = appConfigurations.shopConfigPerChannel[channel];
+  const channelAppConfiguration = appConfigurations.configurationsPerChannel[channel];
   if (!channelAppConfiguration) {
     logger.warn("App has no configuration for this channel");
     return;
   }
 
-  if (!channelAppConfiguration.appConfiguration.active) {
+  if (!channelAppConfiguration.active) {
     logger.warn("App configuration is not active for this channel");
     return;
   }
 
-  const sendgridConfigurationId = channelAppConfiguration.appConfiguration.sendgridConfigurationId;
+  const sendgridConfigurationId = channelAppConfiguration.sendgridConfigurationId;
   if (!sendgridConfigurationId?.length) {
     logger.warn("Sendgrid configuration has not been chosen for this channel");
     return;

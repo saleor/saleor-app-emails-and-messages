@@ -1,4 +1,4 @@
-import { SellerShopConfig } from "../app-config";
+import { AppConfigurationPerChannel } from "../app-config";
 import { Controller, useForm } from "react-hook-form";
 import {
   FormControl,
@@ -33,16 +33,16 @@ type Props = {
   channelID: string;
   mjmlConfigurationChoices: { label: string; value: string }[];
   sendgridConfigurationChoices: { label: string; value: string }[];
-  onSubmit(data: SellerShopConfig["appConfiguration"]): Promise<void>;
-  initialData?: SellerShopConfig["appConfiguration"] | null;
+  onSubmit(data: AppConfigurationPerChannel): Promise<void>;
+  initialData?: AppConfigurationPerChannel | null;
 };
 
 export const AppConfigurationForm = (props: Props) => {
-  const { handleSubmit, getValues, setValue, control, reset } = useForm<
-    SellerShopConfig["appConfiguration"]
-  >({
-    defaultValues: props.initialData ?? undefined,
-  });
+  const { handleSubmit, getValues, setValue, control, reset } = useForm<AppConfigurationPerChannel>(
+    {
+      defaultValues: props.initialData ?? undefined,
+    }
+  );
 
   useEffect(() => {
     reset(props.initialData || undefined);

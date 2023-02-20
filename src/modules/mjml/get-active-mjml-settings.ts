@@ -23,18 +23,18 @@ export const getActiveMjmlSettings = async ({ authData, channel }: GetMjmlSettin
   const mjmlConfigurations = await caller.mjmlConfiguration.fetch();
   const appConfigurations = await caller.appConfiguration.fetch();
 
-  const channelAppConfiguration = appConfigurations.shopConfigPerChannel[channel];
+  const channelAppConfiguration = appConfigurations.configurationsPerChannel[channel];
   if (!channelAppConfiguration) {
     logger.warn("App has no configuration for this channel");
     return;
   }
 
-  if (!channelAppConfiguration.appConfiguration.active) {
+  if (!channelAppConfiguration.active) {
     logger.warn("App configuration is not active for this channel");
     return;
   }
 
-  const mjmlConfigurationId = channelAppConfiguration.appConfiguration.mjmlConfigurationId;
+  const mjmlConfigurationId = channelAppConfiguration.mjmlConfigurationId;
   if (!mjmlConfigurationId?.length) {
     logger.warn("MJML configuration has not been chosen for this channel");
     return;

@@ -16,7 +16,7 @@ export const FallbackAppConfig = {
           getDefaultEmptyAppConfiguration()
         );
       },
-      { shopConfigPerChannel: {} }
+      { configurationsPerChannel: {} }
     );
   },
 };

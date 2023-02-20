@@ -1,6 +1,6 @@
-import { AppConfig, SellerShopConfig } from "./app-config";
+import { AppConfig, AppConfigurationPerChannel } from "./app-config";
 
-export const getDefaultEmptyAppConfiguration = (): SellerShopConfig["appConfiguration"] => ({
+export const getDefaultEmptyAppConfiguration = (): AppConfigurationPerChannel => ({
   active: false,
   mjmlConfigurationId: undefined,
   sendgridConfigurationId: undefined,
@@ -9,7 +9,7 @@ export const getDefaultEmptyAppConfiguration = (): SellerShopConfig["appConfigur
 const getChannelAppConfiguration =
   (appConfig: AppConfig | null | undefined) => (channelSlug: string) => {
     try {
-      return appConfig?.shopConfigPerChannel[channelSlug].appConfiguration ?? null;
+      return appConfig?.configurationsPerChannel[channelSlug] ?? null;
     } catch (e) {
       return null;
     }
@@ -18,13 +18,11 @@ const getChannelAppConfiguration =
 const setChannelAppConfiguration =
   (appConfig: AppConfig | null | undefined) =>
   (channelSlug: string) =>
-  (appConfiguration: SellerShopConfig["appConfiguration"]) => {
-    const appConfigNormalized = structuredClone(appConfig) ?? { shopConfigPerChannel: {} };
+  (appConfiguration: AppConfigurationPerChannel) => {
+    const appConfigNormalized = structuredClone(appConfig) ?? { configurationsPerChannel: {} };
 
-    appConfigNormalized.shopConfigPerChannel[channelSlug] ??= {
-      appConfiguration: getDefaultEmptyAppConfiguration(),
-    };
-    appConfigNormalized.shopConfigPerChannel[channelSlug].appConfiguration = appConfiguration;
+    appConfigNormalized.configurationsPerChannel[channelSlug] ??= getDefaultEmptyAppConfiguration();
+    appConfigNormalized.configurationsPerChannel[channelSlug] = appConfiguration;
 
     return appConfigNormalized;
   };

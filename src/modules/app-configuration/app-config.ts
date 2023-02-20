@@ -1,13 +1,11 @@
-export interface SellerShopConfig {
-  appConfiguration: {
-    active: boolean;
-    mjmlConfigurationId?: string;
-    sendgridConfigurationId?: string;
-  };
+export interface AppConfigurationPerChannel {
+  active: boolean;
+  mjmlConfigurationId?: string;
+  sendgridConfigurationId?: string;
 }
 
-export type ShopConfigPerChannelSlug = Record<string, SellerShopConfig>;
+export type AppConfigurationsChannelMap = Record<string, AppConfigurationPerChannel>;
 
 export type AppConfig = {
-  shopConfigPerChannel: ShopConfigPerChannelSlug;
+  configurationsPerChannel: AppConfigurationsChannelMap;
 };
