@@ -6,7 +6,7 @@ export const mjmlConfigInputSchema = z.object({
       active: z.boolean(),
       configurationName: z.string(),
       senderName: z.string(),
-      senderEmail: z.string(),
+      senderEmail: z.string().email(),
       smtpHost: z.string(),
       smtpPort: z.string(),
       smtpUser: z.string().min(0),
