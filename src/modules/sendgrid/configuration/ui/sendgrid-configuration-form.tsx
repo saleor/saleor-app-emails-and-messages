@@ -279,6 +279,178 @@ export const SendgridConfigurationForm = (props: Props) => {
         }}
       />
 
+      <Controller
+        name="templateOrderConfirmedSubject"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Order Confirmed Email subject"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="templateOrderConfirmedTemplate"
+        defaultValue={getValues("templateOrderConfirmedTemplate")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControl className={styles.field} fullWidth>
+              <InputLabel id="demo-simple-select-label">Template for Order Confirmed</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                variant="outlined"
+                value={value}
+                onChange={(event, val) => {
+                  setValue(`templateOrderConfirmedTemplate`, event.target.value as string);
+                  return onChange(event.target.value);
+                }}
+              >
+                {!!templateChoices?.length &&
+                  templateChoices.map((choice) => (
+                    <MenuItem key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          );
+        }}
+      />
+
+      <Controller
+        name="templateOrderCancelledSubject"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Order Cancelled Email subject"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="templateOrderCancelledTemplate"
+        defaultValue={getValues("templateOrderCancelledTemplate")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControl className={styles.field} fullWidth>
+              <InputLabel id="demo-simple-select-label">Template for Order Cancelled</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                variant="outlined"
+                value={value}
+                onChange={(event, val) => {
+                  setValue(`templateOrderCancelledTemplate`, event.target.value as string);
+                  return onChange(event.target.value);
+                }}
+              >
+                {!!templateChoices?.length &&
+                  templateChoices.map((choice) => (
+                    <MenuItem key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          );
+        }}
+      />
+
+      <Controller
+        name="templateOrderFullyPaidSubject"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Order Fully Paid Email subject"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="templateOrderFullyPaidTemplate"
+        defaultValue={getValues("templateOrderFullyPaidTemplate")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControl className={styles.field} fullWidth>
+              <InputLabel id="demo-simple-select-label">Template for Order Fully Paid</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                variant="outlined"
+                value={value}
+                onChange={(event, val) => {
+                  setValue(`templateOrderFullyPaidTemplate`, event.target.value as string);
+                  return onChange(event.target.value);
+                }}
+              >
+                {!!templateChoices?.length &&
+                  templateChoices.map((choice) => (
+                    <MenuItem key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          );
+        }}
+      />
+
+      <Controller
+        name="templateInvoiceSentSubject"
+        control={control}
+        render={({ field: { onChange, value } }) => (
+          <TextField
+            label="Invoice sent Email subject"
+            value={value}
+            onChange={onChange}
+            {...CommonFieldProps}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="templateInvoiceSentTemplate"
+        defaultValue={getValues("templateInvoiceSentTemplate")}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <FormControl className={styles.field} fullWidth>
+              <InputLabel id="demo-simple-select-label">Template for Invoice Sent</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                variant="outlined"
+                value={value}
+                onChange={(event, val) => {
+                  setValue(`templateInvoiceSentTemplate`, event.target.value as string);
+                  return onChange(event.target.value);
+                }}
+              >
+                {!!templateChoices?.length &&
+                  templateChoices.map((choice) => (
+                    <MenuItem key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          );
+        }}
+      />
+
       <Button type="submit" fullWidth variant="primary">
         Save configuration
       </Button>
