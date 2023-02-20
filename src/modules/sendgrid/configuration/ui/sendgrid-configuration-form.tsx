@@ -213,10 +213,8 @@ export const SendgridConfigurationForm = (props: Props) => {
         render={({ field: { value, onChange } }) => {
           return (
             <FormControl className={styles.field} fullWidth>
-              <InputLabel id="demo-simple-select-label">Template for Order Created</InputLabel>
+              <InputLabel>Template for Order Created</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
@@ -256,10 +254,8 @@ export const SendgridConfigurationForm = (props: Props) => {
         render={({ field: { value, onChange } }) => {
           return (
             <FormControl className={styles.field} fullWidth>
-              <InputLabel id="demo-simple-select-label">Template for Order Fulfilled</InputLabel>
+              <InputLabel>Template for Order Fulfilled</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
@@ -299,10 +295,8 @@ export const SendgridConfigurationForm = (props: Props) => {
         render={({ field: { value, onChange } }) => {
           return (
             <FormControl className={styles.field} fullWidth>
-              <InputLabel id="demo-simple-select-label">Template for Order Confirmed</InputLabel>
+              <InputLabel>Template for Order Confirmed</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
@@ -342,10 +336,8 @@ export const SendgridConfigurationForm = (props: Props) => {
         render={({ field: { value, onChange } }) => {
           return (
             <FormControl className={styles.field} fullWidth>
-              <InputLabel id="demo-simple-select-label">Template for Order Cancelled</InputLabel>
+              <InputLabel>Template for Order Cancelled</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
@@ -385,10 +377,8 @@ export const SendgridConfigurationForm = (props: Props) => {
         render={({ field: { value, onChange } }) => {
           return (
             <FormControl className={styles.field} fullWidth>
-              <InputLabel id="demo-simple-select-label">Template for Order Fully Paid</InputLabel>
+              <InputLabel>Template for Order Fully Paid</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
@@ -428,10 +418,8 @@ export const SendgridConfigurationForm = (props: Props) => {
         render={({ field: { value, onChange } }) => {
           return (
             <FormControl className={styles.field} fullWidth>
-              <InputLabel id="demo-simple-select-label">Template for Invoice Sent</InputLabel>
+              <InputLabel>Template for Invoice Sent</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
                 variant="outlined"
                 value={value}
                 onChange={(event, val) => {
