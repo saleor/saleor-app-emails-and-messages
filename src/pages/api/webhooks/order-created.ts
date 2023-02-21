@@ -1,20 +1,19 @@
-import { SALEOR_AUTHORIZATION_BEARER_HEADER, SALEOR_DOMAIN_HEADER } from "@saleor/app-sdk/const";
 import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handlers/next";
-
 import { gql } from "urql";
+import { saleorApp } from "../../../saleor-app";
+import { logger as pinoLogger } from "../../../lib/logger";
 import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphql";
-import { saleorApp } from "../../../../saleor-app";
-import { createClient } from "../../../lib/graphql";
-import { createSettingsManager } from "../../../lib/metadata";
-import { compileMjml } from "../../../lib/mjml";
-import { sendMail } from "../../../lib/smtp";
-import { compileTemplate } from "../../../lib/template";
+import { sendEventMessages } from "../../../modules/event-handlers/send-event-messages";
 
 const OrderCreatedWebhookPayload = gql`
   fragment OrderCreatedWebhookPayload on OrderCreated {
     order {
       id
       number
+      userEmail
+      channel {
+        slug
+      }
       user {
         email
         firstName
@@ -80,67 +79,39 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
   res,
   context
 ) => {
-  const saleorDomain = req.headers[SALEOR_DOMAIN_HEADER] as string;
-
-  const { payload, authData } = context;
-
-  const client = createClient(`https://${saleorDomain}/graphql/`, async () =>
-    Promise.resolve({ token: authData.token })
-  );
-
-  const settings = createSettingsManager(client);
-
-  const getMjmlEmail = async () => {
-    // TODO: move it to lib handler
-    const res = await fetch("http://localhost:3000/api/metadata", {
-      method: "GET",
-      headers: [
-        ["content-type", "application/json"],
-        [SALEOR_DOMAIN_HEADER, authData.domain],
-        [SALEOR_AUTHORIZATION_BEARER_HEADER, authData.token],
-      ],
-    });
-
-    const response = await res.json();
-
-    const template = JSON.parse(response.metadata[0].value).mjmlTemplate;
-
-    return template;
-  };
-
-  const rawMjml = await getMjmlEmail();
-
-  const rawHtml = compileMjml(rawMjml);
-
-  const { htmlTemplate, plaintextTemplate } = compileTemplate(rawHtml, payload);
-
-  // Check if desired email provider is configured
-  // If not don't send error to saleor
-
-  const data = await settings.get("mailhog");
-
-  const { smtpHost, smtpPort } = JSON.parse(data ?? "{}");
-
-  const messageId = await sendMail({
-    mailData: {
-      text: plaintextTemplate,
-      html: htmlTemplate,
-      from: "Saleor Mailing Bot <mail@saleor.io>",
-      to: "test@user.com",
-      subject: "Your order has been created",
-    },
-    smtpSettings: {
-      host: smtpHost,
-      port: smtpPort,
-    },
+  const logger = pinoLogger.child({
+    webhook: orderCreatedWebhook.name,
   });
 
-  console.log("Message sent: %s", messageId);
+  logger.debug("Webhook received");
 
-  // return error to saleor only if the process of email sending has failed
-  // (saleor reruns the webhook if error)
+  const { payload, authData } = context;
+  const { order } = payload;
 
-  return res.status(200).json({ status: "git" });
+  if (!order) {
+    logger.error("No order data payload");
+    return res.status(200).end();
+  }
+
+  const recipientEmail = order.userEmail || order.user?.email;
+  if (!recipientEmail?.length) {
+    logger.error(`The order ${order.number} had no email recipient set. Aborting.`);
+    return res
+      .status(200)
+      .json({ error: "Email recipient has not been specified in the event payload." });
+  }
+
+  const channel = order.channel.slug;
+
+  await sendEventMessages({
+    authData,
+    channel,
+    event: "ORDER_CREATED",
+    payload: payload.order,
+    recipientEmail,
+  });
+
+  return res.status(200).json({ message: "The event has been handled" });
 };
 
 export default orderCreatedWebhook.createHandler(handler);
