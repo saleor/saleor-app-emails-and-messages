@@ -10,6 +10,9 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    borderLeft: 'none',
+    borderRight: 'none',
+    borderTop: 'none'
   },
   leftColumn: {
     marginRight: "auto",
@@ -39,7 +42,7 @@ export const MainBar = ({ name, author, rightColumnContent, className, icon }: P
   const styles = useStyles();
 
   return (
-    <Paper elevation={0} className={clsx(styles.root, className)}>
+    <Paper square variant="outlined" elevation={0} className={clsx(styles.root, className)}>
       {icon && <div className={styles.iconColumn}>{icon}</div>}
       <div className={styles.leftColumn}>
         <h1 className={styles.appName}>{name}</h1>

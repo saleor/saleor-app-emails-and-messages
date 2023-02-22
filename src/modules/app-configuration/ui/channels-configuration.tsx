@@ -26,7 +26,11 @@ export const ChannelsConfiguration = () => {
 
   return (
     <>
-      <PageTabs value={activeTab} onChange={(value) => setActiveTab(value as Tab)}>
+      <PageTabs
+        style={{ maxWidth: 1180, margin: '0 auto' }}
+        value={activeTab}
+        onChange={(value) => setActiveTab(value as Tab)}
+      >
         {Object.entries(tabs).map(([key, config]) => (
           <PageTab key={key} value={key} label={config.label} />
         ))}

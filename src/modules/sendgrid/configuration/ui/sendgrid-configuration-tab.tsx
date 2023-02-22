@@ -1,4 +1,4 @@
-import { LinearProgress, Paper } from "@material-ui/core";
+import { CircularProgress, LinearProgress, Paper } from "@material-ui/core";
 import React, { useEffect, useMemo, useState } from "react";
 import { makeStyles } from "@saleor/macaw-ui";
 import { ConfigurationsList } from "../../../app-configuration/ui/configurations-list";
@@ -24,6 +24,12 @@ const useStyles = makeStyles((theme) => {
       display: "flex",
       flexDirection: "column",
       gap: 20,
+    },
+    loaderContainer: {
+      margin: "50px auto",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
     },
   };
 });
@@ -81,7 +87,11 @@ export const SendgridConfigurationTab = () => {
   }, [activeConfigurationId]);
 
   if (isLoading) {
-    return <LinearProgress />;
+    return (
+      <div className={styles.loaderContainer}>
+        <CircularProgress color="primary" />
+      </div>
+    );
   }
 
   return (
