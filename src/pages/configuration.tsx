@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { Button, makeStyles } from "@saleor/macaw-ui";
 import { GitHub, OfflineBoltOutlined } from "@material-ui/icons";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
-import { Typography } from "@material-ui/core";
 import { MainBar } from "../modules/ui/main-bar";
 import { trpcClient } from "../modules/trpc/trpc-client";
 import { ChannelsConfiguration } from "../modules/app-configuration/ui/channels-configuration";

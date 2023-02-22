@@ -12,7 +12,7 @@ import { orderFullyPaidWebhook } from "./webhooks/order-fully-paid";
 export default createManifestHandler({
   async manifestFactory(context) {
     const manifest: AppManifest = {
-      name: packageJson.name,
+      name: 'Emails & Messages',
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
       appUrl: context.appBaseUrl,
       permissions: ["MANAGE_ORDERS"],

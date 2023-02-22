@@ -14,7 +14,7 @@ import { Button, makeStyles } from "@saleor/macaw-ui";
 import React, { useEffect } from "react";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   field: {
     marginBottom: 20,
   },
@@ -22,10 +22,10 @@ const useStyles = makeStyles({
     padding: 20,
   },
   channelName: {
-    fontFamily: "monospace",
     cursor: "pointer",
+    borderBottom: `2px solid ${theme.palette.secondary.main}`,
   },
-});
+}));
 
 type Props = {
   channelSlug: string;
@@ -71,11 +71,11 @@ export const AppConfigurationForm = (props: Props) => {
       })}
       className={styles.form}
     >
-      <Typography variant="body1" paragraph>
+      <Typography component="h3" variant="h3" paragraph>
         Configure
-        <strong onClick={handleChannelNameClick} className={styles.channelName}>
+        <span onClick={handleChannelNameClick} className={styles.channelName}>
           {` ${props.channelName} `}
-        </strong>
+        </span>
         channel:
       </Typography>
       <Controller

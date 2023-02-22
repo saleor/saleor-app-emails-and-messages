@@ -1,4 +1,4 @@
-import { LinearProgress, Paper } from "@material-ui/core";
+import { CircularProgress, Paper } from "@material-ui/core";
 import React, { useEffect, useMemo, useState } from "react";
 import { makeStyles } from "@saleor/macaw-ui";
 import { AppConfigContainer } from "../app-config-container";
@@ -20,6 +20,13 @@ const useStyles = makeStyles((theme) => {
       display: "flex",
       flexDirection: "column",
       gap: 20,
+      maxWidth: 600,
+    },
+    loaderContainer: {
+      margin: "50px auto",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
     },
   };
 });
@@ -96,7 +103,11 @@ export const ChannelsConfigurationTab = () => {
   }, [channels.data, activeChannelSlug]);
 
   if (channels.isLoading || !channels.data) {
-    return <LinearProgress />;
+    return (
+      <div className={styles.loaderContainer}>
+        <CircularProgress color="primary" />
+      </div>
+    );
   }
 
   if (!activeChannel) {
@@ -108,7 +119,10 @@ export const ChannelsConfigurationTab = () => {
       <ChannelsList
         channels={channels.data}
         activeChannelSlug={activeChannel.slug}
-        onChannelClick={setActiveChannelSlug}
+        onChannelClick={(slug) => {
+          setActiveChannelSlug(slug);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
       />
       {activeChannel ? (
         <div className={styles.configurationColumn}>
