@@ -1,4 +1,6 @@
 import {
+  DeleteIcon,
+  IconButton,
   makeStyles,
   OffsettedList,
   OffsettedListBody,
@@ -15,61 +17,69 @@ const useStyles = makeStyles((theme) => {
       height: "auto !important",
     },
     listItemActive: {
-      border: `2px solid ${theme.palette.primary.main}`,
+      background: "#f4f4f4",
+      borderRadius: 4,
+      overflow: "hidden",
     },
-    cellSlug: {
+    channelSlug: {
       fontFamily: "monospace",
       opacity: 0.8,
     },
   };
 });
 
-type Configurations = {
-  name: string;
+type ListItem = {
+  label: string;
   id: string;
 };
 
 type Props = {
-  configurations: Configurations[];
-  activeConfigurationId?: string;
-  onItemClick(configurationId?: string): void;
+  listItems: ListItem[];
+  activeItemId?: string;
+  onItemClick(itemId?: string): void;
 };
 
-export const ConfigurationsList = ({
-  configurations: channels,
-  activeConfigurationId: activeChannelSlug,
-  onItemClick: onChannelClick,
-}: Props) => {
+export const ConfigurationsList = ({ listItems, activeItemId, onItemClick }: Props) => {
   const styles = useStyles();
-
   return (
     <OffsettedList gridTemplate={["1fr"]}>
       <OffsettedListBody>
-        {channels.map((c) => {
+        {listItems.map((c) => {
           return (
             <OffsettedListItem
               className={clsx(styles.listItem, {
-                [styles.listItemActive]: c.id === activeChannelSlug,
+                [styles.listItemActive]: c.id === activeItemId,
               })}
               key={c.id}
               onClick={() => {
-                onChannelClick(c.id);
+                onItemClick(c.id);
               }}
             >
-              <OffsettedListItemCell>{c.name}</OffsettedListItemCell>
+              <OffsettedListItemCell>
+                {c.label}
+                <IconButton
+                  variant="secondary"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </OffsettedListItemCell>
             </OffsettedListItem>
           );
         })}
         <OffsettedListItem
           className={clsx(styles.listItem, {
-            [styles.listItemActive]: activeChannelSlug === undefined,
+            [styles.listItemActive]: activeItemId === undefined,
           })}
           key="new"
           onClick={() => {
-            onChannelClick(undefined);
+            onItemClick();
           }}
         >
-          <OffsettedListItemCell>Create a new configuration</OffsettedListItemCell>
+          <OffsettedListItemCell>Create new</OffsettedListItemCell>
         </OffsettedListItem>
       </OffsettedListBody>
     </OffsettedList>

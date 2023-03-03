@@ -1,4 +1,18 @@
+import { MessageEventTypes } from "../../event-handlers/message-event-types";
+
+export interface MjmlEventConfiguration {
+  active: boolean;
+  eventType: MessageEventTypes;
+  template: string;
+  subject: string;
+}
+
+export const smtpEncryptionTypes = ["NONE", "TLS", "SSL"] as const;
+
+export type SmtpEncryptionType = (typeof smtpEncryptionTypes)[number];
+
 export interface MjmlConfiguration {
+  id: string;
   active: boolean;
   configurationName: string;
   senderName: string;
@@ -6,24 +20,10 @@ export interface MjmlConfiguration {
   smtpHost: string;
   smtpPort: string;
   smtpUser: string;
-  useTls: boolean;
-  useSsl: boolean;
-  templateInvoiceSentSubject: string;
-  templateInvoiceSentTemplate: string;
-  templateOrderCancelledSubject: string;
-  templateOrderCancelledTemplate: string;
-  templateOrderConfirmedSubject: string;
-  templateOrderConfirmedTemplate: string;
-  templateOrderFullyPaidSubject: string;
-  templateOrderFullyPaidTemplate: string;
-  templateOrderCreatedSubject: string;
-  templateOrderCreatedTemplate: string;
-  templateOrderFulfilledSubject: string;
-  templateOrderFulfilledTemplate: string;
+  encryption: SmtpEncryptionType;
+  events: MjmlEventConfiguration[];
 }
 
-export type MjmlConfigurationsIdMap = Record<string, MjmlConfiguration>;
-
 export type MjmlConfig = {
-  availableConfigurations: MjmlConfigurationsIdMap;
+  configurations: MjmlConfiguration[];
 };

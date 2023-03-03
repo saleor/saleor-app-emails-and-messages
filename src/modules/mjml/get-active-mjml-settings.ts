@@ -5,9 +5,14 @@ import { logger as pinoLogger } from "../../lib/logger";
 interface GetMjmlSettingsArgs {
   authData: AuthData;
   channel: string;
+  configurationId: string;
 }
 
-export const getActiveMjmlSettings = async ({ authData, channel }: GetMjmlSettingsArgs) => {
+export const getActiveMjmlSettings = async ({
+  authData,
+  channel,
+  configurationId,
+}: GetMjmlSettingsArgs) => {
   const logger = pinoLogger.child({
     fn: "getMjmlSettings",
     channel,
@@ -20,29 +25,12 @@ export const getActiveMjmlSettings = async ({ authData, channel }: GetMjmlSettin
     ssr: true,
   });
 
-  const mjmlConfigurations = await caller.mjmlConfiguration.fetch();
-  const appConfigurations = await caller.appConfiguration.fetch();
+  const configuration = await caller.mjmlConfiguration.getConfiguration({
+    id: configurationId,
+  });
 
-  const channelAppConfiguration = appConfigurations.configurationsPerChannel[channel];
-  if (!channelAppConfiguration) {
-    logger.warn("App has no configuration for this channel");
-    return;
-  }
-
-  if (!channelAppConfiguration.active) {
-    logger.warn("App configuration is not active for this channel");
-    return;
-  }
-
-  const mjmlConfigurationId = channelAppConfiguration.mjmlConfigurationId;
-  if (!mjmlConfigurationId?.length) {
-    logger.warn("MJML configuration has not been chosen for this channel");
-    return;
-  }
-
-  const configuration = mjmlConfigurations?.availableConfigurations[mjmlConfigurationId];
   if (!configuration) {
-    logger.warn(`The MJML configuration with id ${mjmlConfigurationId} does not exist`);
+    logger.warn(`The MJML configuration with id ${configurationId} does not exist`);
     return;
   }
 
@@ -50,15 +38,6 @@ export const getActiveMjmlSettings = async ({ authData, channel }: GetMjmlSettin
     logger.warn(`The MJML configuration ${configuration.configurationName} is not active`);
     return;
   }
-
-  //TODO: validate the config
-  // const storefrontUrl = configuration.mjmlConfiguration.storefrontUrl;
-
-  // const productStorefrontUrl = configuration.urlConfiguration.productStorefrontUrl;
-
-  // if (!storefrontUrl.length || !productStorefrontUrl.length) {
-  //   throw new Error("The application has not been configured");
-  // }
 
   return configuration;
 };

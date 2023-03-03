@@ -15,10 +15,6 @@ export const Instructions = () => {
 
   const { appBridge } = useAppBridge();
 
-  // TODO: Prepare usage and configuration instructions. If the process require 3rd party
-  // application configuration (for example payment provider), create documentation file and
-  // link it here
-
   return (
     <Paper elevation={0} className={styles.instructionsContainer}>
       <Typography paragraph variant="h4">

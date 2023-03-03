@@ -1,12 +1,12 @@
-import { CircularProgress, Paper } from "@material-ui/core";
 import React, { useEffect, useMemo, useState } from "react";
-import { makeStyles } from "@saleor/macaw-ui";
+import { EditIcon, IconButton, makeStyles } from "@saleor/macaw-ui";
 import { AppConfigContainer } from "../app-config-container";
 import { AppConfigurationForm } from "./app-configuration-form";
-import { ChannelsList } from "./channels-list";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { AppColumnsLayout } from "../../ui/app-columns-layout";
 import { trpcClient } from "../../trpc/trpc-client";
+import SideMenu from "./side-menu";
+import { LoadingIndicator } from "../../ui/loading-indicator";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -21,12 +21,6 @@ const useStyles = makeStyles((theme) => {
       flexDirection: "column",
       gap: 20,
       maxWidth: 600,
-    },
-    loaderContainer: {
-      margin: "50px auto",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
     },
   };
 });
@@ -45,18 +39,19 @@ export const ChannelsConfigurationTab = () => {
   const { data: configurationData, refetch: refetchConfig } =
     trpcClient.appConfiguration.fetch.useQuery();
 
-  trpcClient.mjmlConfiguration.fetch.useQuery(undefined, {
-    onSuccess(data) {
-      const keys = Object.keys(data.availableConfigurations);
-
-      setMjmlConfigurationsListData(
-        keys.map((key) => ({
-          value: key,
-          label: data.availableConfigurations[key].configurationName,
-        }))
-      );
-    },
-  });
+  trpcClient.mjmlConfiguration.getConfigurations.useQuery(
+    {},
+    {
+      onSuccess(data) {
+        setMjmlConfigurationsListData(
+          data.map((configuration) => ({
+            value: configuration.id,
+            label: configuration.configurationName,
+          }))
+        );
+      },
+    }
+  );
 
   trpcClient.sendgridConfiguration.fetch.useQuery(undefined, {
     onSuccess(data) {
@@ -71,7 +66,11 @@ export const ChannelsConfigurationTab = () => {
     },
   });
 
-  const channels = trpcClient.channels.fetch.useQuery();
+  const {
+    data: channels,
+    isLoading: isChannelsLoading,
+    isSuccess: isChannelsFetchSuccess,
+  } = trpcClient.channels.fetch.useQuery();
 
   const { mutate, error: saveError } = trpcClient.appConfiguration.setAndReplace.useMutation({
     onSuccess() {
@@ -89,25 +88,25 @@ export const ChannelsConfigurationTab = () => {
   const [activeChannelSlug, setActiveChannelSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    if (channels.isSuccess) {
-      setActiveChannelSlug(channels.data![0].slug ?? null);
+    if (isChannelsFetchSuccess) {
+      setActiveChannelSlug(channels[0].slug ?? null);
     }
-  }, [channels.isSuccess, channels.data]);
+  }, [isChannelsFetchSuccess, channels]);
 
   const activeChannel = useMemo(() => {
     try {
-      return channels.data!.find((c) => c.slug === activeChannelSlug)!;
+      return channels!.find((c) => c.slug === activeChannelSlug)!;
     } catch (e) {
       return null;
     }
-  }, [channels.data, activeChannelSlug]);
+  }, [channels, activeChannelSlug]);
 
-  if (channels.isLoading || !channels.data) {
-    return (
-      <div className={styles.loaderContainer}>
-        <CircularProgress color="primary" />
-      </div>
-    );
+  if (isChannelsLoading) {
+    return <LoadingIndicator />;
+  }
+
+  if (!channels?.length) {
+    return <div>NO CHANNELS</div>;
   }
 
   if (!activeChannel) {
@@ -116,37 +115,47 @@ export const ChannelsConfigurationTab = () => {
 
   return (
     <AppColumnsLayout>
-      <ChannelsList
-        channels={channels.data}
-        activeChannelSlug={activeChannel.slug}
-        onChannelClick={(slug) => {
-          setActiveChannelSlug(slug);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
+      <SideMenu
+        title="Channels"
+        selectedItemId={activeChannel.slug}
+        headerToolbar={
+          <IconButton
+            variant="secondary"
+            onClick={() => {
+              appBridge?.dispatch(
+                actions.Redirect({
+                  to: `/channels/`,
+                })
+              );
+            }}
+          >
+            <EditIcon />
+          </IconButton>
+        }
+        onClick={(id) => setActiveChannelSlug(id)}
+        items={channels.map((c) => ({ label: c.name, id: c.slug })) || []}
       />
       {activeChannel ? (
         <div className={styles.configurationColumn}>
-          <Paper elevation={0} className={styles.formContainer}>
-            <AppConfigurationForm
-              channelID={activeChannel.id}
-              key={activeChannelSlug}
-              channelSlug={activeChannel.slug}
-              mjmlConfigurationChoices={mjmlConfigurationsListData}
-              sendgridConfigurationChoices={sendgridConfigurationsListData}
-              onSubmit={async (data) => {
-                const newConfig = AppConfigContainer.setChannelAppConfiguration(configurationData)(
-                  activeChannel.slug
-                )(data);
-
-                mutate(newConfig);
-              }}
-              initialData={AppConfigContainer.getChannelAppConfiguration(configurationData)(
+          <AppConfigurationForm
+            channelID={activeChannel.id}
+            key={activeChannelSlug}
+            channelSlug={activeChannel.slug}
+            mjmlConfigurationChoices={mjmlConfigurationsListData}
+            sendgridConfigurationChoices={sendgridConfigurationsListData}
+            onSubmit={async (data) => {
+              const newConfig = AppConfigContainer.setChannelAppConfiguration(configurationData)(
                 activeChannel.slug
-              )}
-              channelName={activeChannel?.name ?? activeChannelSlug}
-            />
-            {saveError && <span>{saveError.message}</span>}
-          </Paper>
+              )(data);
+
+              mutate(newConfig);
+            }}
+            initialData={AppConfigContainer.getChannelAppConfiguration(configurationData)(
+              activeChannel.slug
+            )}
+            channelName={activeChannel?.name ?? activeChannelSlug}
+          />
+          {saveError && <span>{saveError.message}</span>}
         </div>
       ) : null}
     </AppColumnsLayout>

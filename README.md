@@ -4,10 +4,6 @@
   <h1>Emails and messages</h1>
 </div>
 
-## About
-
-<!-- TODO: Short description about the app purpose -->
-
 ### What's included?
 
 - sending emails via SMTP

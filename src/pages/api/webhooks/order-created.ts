@@ -1,3 +1,4 @@
+import { OrderDetailsFragment, OrderDetailsFragmentDoc } from "./../../../../generated/graphql";
 import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handlers/next";
 import { gql } from "urql";
 import { saleorApp } from "../../../saleor-app";
@@ -6,53 +7,10 @@ import { OrderCreatedWebhookPayloadFragment } from "../../../../generated/graphq
 import { sendEventMessages } from "../../../modules/event-handlers/send-event-messages";
 
 const OrderCreatedWebhookPayload = gql`
+  ${OrderDetailsFragmentDoc}
   fragment OrderCreatedWebhookPayload on OrderCreated {
     order {
-      id
-      number
-      userEmail
-      channel {
-        slug
-      }
-      user {
-        email
-        firstName
-        lastName
-      }
-      billingAddress {
-        streetAddress1
-        city
-        postalCode
-        country {
-          country
-        }
-      }
-      shippingAddress {
-        streetAddress1
-        city
-        postalCode
-        country {
-          country
-        }
-      }
-      subtotal {
-        gross {
-          amount
-          currency
-        }
-      }
-      shippingPrice {
-        gross {
-          amount
-          currency
-        }
-      }
-      total {
-        gross {
-          amount
-          currency
-        }
-      }
+      ...OrderDetails
     }
   }
 `;
@@ -107,7 +65,7 @@ const handler: NextWebhookApiHandler<OrderCreatedWebhookPayloadFragment> = async
     authData,
     channel,
     event: "ORDER_CREATED",
-    payload: payload.order,
+    payload: { order: payload.order },
     recipientEmail,
   });
 

@@ -1,15 +1,12 @@
-import { NextPage } from "next";
-import React, { useEffect } from "react";
-import { useRouter } from "next/router";
-import { Button, makeStyles } from "@saleor/macaw-ui";
+import React, { PropsWithChildren } from "react";
+import { Button, makeStyles, PageTab, PageTabs } from "@saleor/macaw-ui";
 import { GitHub, OfflineBoltOutlined } from "@material-ui/icons";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
-import { MainBar } from "../modules/ui/main-bar";
-import { trpcClient } from "../modules/trpc/trpc-client";
-import { ChannelsConfiguration } from "../modules/app-configuration/ui/channels-configuration";
-import { appBrandColor, appName } from "../const";
+import { MainBar } from "../../modules/ui/main-bar";
+import { appBrandColor, appName } from "../../const";
 import Image from "next/image";
-import appIcon from "../public/notification-hub.svg";
+import appIcon from "../../public/notification-hub.svg";
+import { useRouter } from "next/router";
 
 const useStyles = makeStyles({
   buttonsGrid: { display: "flex", gap: 10 },
@@ -40,11 +37,10 @@ const AppIcon = () => {
   );
 };
 
-const ConfigurationPage: NextPage = () => {
-  const styles = useStyles();
-  const channels = trpcClient.channels.fetch.useQuery();
-  const router = useRouter();
+type Props = PropsWithChildren<{}>;
 
+export const ConfigurationPageBaseLayout = ({ children }: Props) => {
+  const styles = useStyles();
   const { appBridge } = useAppBridge();
 
   const openInNewTab = (url: string) => {
@@ -56,12 +52,25 @@ const ConfigurationPage: NextPage = () => {
     );
   };
 
-  useEffect(() => {
-    if (channels.isSuccess && channels.data.length === 0) {
-      router.push("/not-ready");
-    }
-  }, [channels.data, channels.isSuccess]);
+  const router = useRouter();
+  const tabs = [
+    {
+      key: "channels",
+      label: "Channels",
+      url: "/configuration/channels",
+    },
+    { key: "mjml", label: "MJML", url: "/configuration/mjml" },
+    { key: "sendgrid", label: "Sendgrid", url: "/configuration/sendgrid" },
+  ];
 
+  const activePath = tabs.find((tab) => router.pathname.startsWith(tab.url))?.key;
+
+  const navigateToTab = (value: string) => {
+    const redirectionUrl = tabs.find((tab) => tab.key === value)?.url;
+    if (redirectionUrl) {
+      router.push(redirectionUrl);
+    }
+  };
   return (
     <div>
       <MainBar
@@ -92,9 +101,16 @@ const ConfigurationPage: NextPage = () => {
           </div>
         }
       />
-      <ChannelsConfiguration />
+      <PageTabs
+        value={activePath}
+        onChange={navigateToTab}
+        style={{ maxWidth: 1180, margin: "0 auto" }}
+      >
+        {tabs.map((tab) => (
+          <PageTab key={tab.key} value={tab.key} label={tab.label} />
+        ))}
+      </PageTabs>
+      {children}
     </div>
   );
 };
-
-export default ConfigurationPage;

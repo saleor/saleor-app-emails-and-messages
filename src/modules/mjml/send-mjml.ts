@@ -1,22 +1,15 @@
 import { logger as pinoLogger } from "../../lib/logger";
 import { AuthData } from "@saleor/app-sdk/APL";
-import { MjmlConfiguration } from "./configuration/mjml-config";
 import { getActiveMjmlSettings } from "./get-active-mjml-settings";
-import {
-  defaultInvoiceSentMjmlTemplate,
-  defaultOrderCancelledMjmlTemplate,
-  defaultOrderConfirmedMjmlTemplate,
-  defaultOrderCreatedMjmlTemplate,
-  defaultOrderFulfilledMjmlTemplate,
-  defaultOrderFullyPaidMjmlTemplate,
-} from "./default-templates";
 import { compileMjml } from "./compile-mjml";
 import { compileHandlebarsTemplate } from "./compile-handlebars-template";
 import { sendEmailWithSmtp } from "./send-email-with-smtp";
 import { MessageEventTypes } from "../event-handlers/message-event-types";
+import { htmlToPlaintext } from "./html-to-plaintext";
 
 interface SendMjmlArgs {
   authData: AuthData;
+  mjmlConfigurationId: string;
   channel: string;
   recipientEmail: string;
   event: MessageEventTypes;
@@ -30,54 +23,24 @@ export interface EmailServiceResponse {
   }[];
 }
 
-const eventMapping = (event: SendMjmlArgs["event"], settings: MjmlConfiguration) => {
-  switch (event) {
-    case "ORDER_CREATED":
-      return {
-        template: settings.templateOrderCreatedTemplate || defaultOrderCreatedMjmlTemplate,
-        subject: settings.templateOrderCreatedSubject || "Order created",
-      };
-    case "ORDER_FULFILLED":
-      return {
-        template: settings.templateOrderFulfilledTemplate || defaultOrderFulfilledMjmlTemplate,
-        subject: settings.templateOrderFulfilledSubject || "Order fulfilled",
-      };
-    case "ORDER_CONFIRMED":
-      return {
-        template: settings.templateOrderConfirmedTemplate || defaultOrderConfirmedMjmlTemplate,
-        subject: settings.templateOrderConfirmedSubject || "Order confirmed",
-      };
-    case "ORDER_CANCELLED":
-      return {
-        template: settings.templateOrderCancelledTemplate || defaultOrderCancelledMjmlTemplate,
-        subject: settings.templateOrderCancelledSubject || "Order cancelled",
-      };
-    case "ORDER_FULLY_PAID":
-      return {
-        template: settings.templateOrderFullyPaidTemplate || defaultOrderFullyPaidMjmlTemplate,
-        subject: settings.templateOrderFullyPaidSubject || "Order fully paid",
-      };
-    case "INVOICE_SENT":
-      return {
-        template: settings.templateInvoiceSentTemplate || defaultInvoiceSentMjmlTemplate,
-        subject: settings.templateInvoiceSentSubject || "Invoice sent",
-      };
-  }
-};
-
 export const sendMjml = async ({
   authData,
   channel,
   payload,
   recipientEmail,
   event,
+  mjmlConfigurationId,
 }: SendMjmlArgs) => {
   const logger = pinoLogger.child({
     fn: "sendMjml",
     event,
   });
 
-  const settings = await getActiveMjmlSettings({ authData, channel });
+  const settings = await getActiveMjmlSettings({
+    authData,
+    channel,
+    configurationId: mjmlConfigurationId,
+  });
 
   if (!settings) {
     logger.debug("No active settings, skipping");
@@ -90,11 +53,74 @@ export const sendMjml = async ({
     };
   }
 
+  const eventSettings = settings.events.find((e) => e.eventType === event);
+  if (!eventSettings) {
+    logger.debug("No active settings for this event, skipping");
+    return {
+      errors: [
+        {
+          message: "No active settings for this event",
+        },
+      ],
+    };
+  }
+
+  if (!eventSettings.active) {
+    logger.debug("Event settings are not active, skipping");
+    return {
+      errors: [
+        {
+          message: "Event settings are not active",
+        },
+      ],
+    };
+  }
+
   logger.debug("Sending an email using MJML");
 
-  const { template: rawMjml, subject } = eventMapping(event, settings);
+  const { template: rawTemplate, subject } = eventSettings;
 
-  const { html: rawHtml, errors: mjmlCompilationErrors } = compileMjml(rawMjml);
+  const { template: emailSubject, errors: handlebarsSubjectErrors } = compileHandlebarsTemplate(
+    subject,
+    payload
+  );
+
+  logger.warn(`email subject ${emailSubject} ${subject}`);
+
+  if (handlebarsSubjectErrors?.length) {
+    logger.error("Error during the handlebars subject template compilation");
+    return {
+      errors: [{ message: "Error during the handlebars subject template compilation" }],
+    };
+  }
+
+  if (!emailSubject || !emailSubject?.length) {
+    logger.error("Mjml subject message is empty, skipping");
+    return {
+      errors: [{ message: "Mjml subject message is empty, skipping" }],
+    };
+  }
+
+  const { template: mjmlTemplate, errors: handlebarsErrors } = compileHandlebarsTemplate(
+    rawTemplate,
+    payload
+  );
+
+  if (handlebarsErrors?.length) {
+    logger.error("Error during the handlebars template compilation");
+    return {
+      errors: [{ message: "Error during the handlebars template compilation" }],
+    };
+  }
+
+  if (!mjmlTemplate || !mjmlTemplate?.length) {
+    logger.error("Mjml template message is empty, skipping");
+    return {
+      errors: [{ message: "Mjml template message is empty, skipping" }],
+    };
+  }
+
+  const { html: emailBodyHtml, errors: mjmlCompilationErrors } = compileMjml(mjmlTemplate);
 
   if (mjmlCompilationErrors.length) {
     logger.error("Error during the MJML compilation");
@@ -108,39 +134,29 @@ export const sendMjml = async ({
     };
   }
 
-  if (!rawHtml?.length) {
-    logger.error("No HTML template returned after the compilation");
+  if (!emailBodyHtml || !emailBodyHtml?.length) {
+    logger.error("No MJML template returned after the compilation");
     return {
-      errors: [{ message: "No HTML template returned after the compilation" }],
+      errors: [{ message: "No MJML template returned after the compilation" }],
     };
   }
 
-  const {
-    htmlTemplate,
-    plaintextTemplate,
-    errors: handlebarsErrors,
-  } = compileHandlebarsTemplate(rawHtml, payload);
-  if (handlebarsErrors?.length) {
-    logger.error("Error during the handlebars template compilation");
-    return {
-      errors: [{ message: "Error during the handlebars template compilation" }],
-    };
-  }
+  const { plaintext: emailBodyPlaintext } = htmlToPlaintext(emailBodyHtml);
 
-  if (!htmlTemplate?.length) {
-    logger.error("The final email message is empty, skipping");
+  if (!emailBodyPlaintext || !emailBodyPlaintext?.length) {
+    logger.error("Email body could not be converted to plaintext");
     return {
-      errors: [{ message: "The final email message is empty, skipping" }],
+      errors: [{ message: "Email body could not be converted to plaintext" }],
     };
   }
 
   const { response, errors: smtpErrors } = await sendEmailWithSmtp({
     mailData: {
-      text: plaintextTemplate,
-      html: htmlTemplate,
+      text: emailBodyPlaintext,
+      html: emailBodyHtml,
       from: `${settings.senderName} <${settings.senderEmail}>`,
       to: recipientEmail,
-      subject,
+      subject: emailSubject,
     },
     smtpSettings: {
       host: settings.smtpHost,

@@ -2,57 +2,18 @@ import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handl
 import { gql } from "urql";
 import { saleorApp } from "../../../saleor-app";
 import { logger as pinoLogger } from "../../../lib/logger";
-import { OrderConfirmedWebhookPayloadFragment } from "../../../../generated/graphql";
+import {
+  OrderConfirmedWebhookPayloadFragment,
+  OrderDetailsFragmentDoc,
+} from "../../../../generated/graphql";
 import { sendEventMessages } from "../../../modules/event-handlers/send-event-messages";
 
 const OrderConfirmedWebhookPayload = gql`
+  ${OrderDetailsFragmentDoc}
+
   fragment OrderConfirmedWebhookPayload on OrderConfirmed {
     order {
-      id
-      number
-      userEmail
-      channel {
-        slug
-      }
-      user {
-        email
-        firstName
-        lastName
-      }
-      billingAddress {
-        streetAddress1
-        city
-        postalCode
-        country {
-          country
-        }
-      }
-      shippingAddress {
-        streetAddress1
-        city
-        postalCode
-        country {
-          country
-        }
-      }
-      subtotal {
-        gross {
-          amount
-          currency
-        }
-      }
-      shippingPrice {
-        gross {
-          amount
-          currency
-        }
-      }
-      total {
-        gross {
-          amount
-          currency
-        }
-      }
+      ...OrderDetails
     }
   }
 `;
@@ -107,7 +68,7 @@ const handler: NextWebhookApiHandler<OrderConfirmedWebhookPayloadFragment> = asy
     authData,
     channel,
     event: "ORDER_CONFIRMED",
-    payload: payload.order,
+    payload: { order: payload.order },
     recipientEmail,
   });
 
