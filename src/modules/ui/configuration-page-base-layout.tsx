@@ -60,7 +60,12 @@ export const ConfigurationPageBaseLayout = ({ children }: Props) => {
       url: "/configuration/channels",
     },
     { key: "mjml", label: "MJML", url: "/configuration/mjml" },
-    { key: "sendgrid", label: "Sendgrid", url: "/configuration/sendgrid" },
+    {
+      key: "sendgrid",
+      label: "Sendgrid (Coming soon!)",
+      url: "/configuration/sendgrid",
+      disabled: true,
+    },
   ];
 
   const activePath = tabs.find((tab) => router.pathname.startsWith(tab.url))?.key;
@@ -107,7 +112,7 @@ export const ConfigurationPageBaseLayout = ({ children }: Props) => {
         style={{ maxWidth: 1180, margin: "0 auto" }}
       >
         {tabs.map((tab) => (
-          <PageTab key={tab.key} value={tab.key} label={tab.label} />
+          <PageTab key={tab.key} value={tab.key} label={tab.label} disabled={tab.disabled} />
         ))}
       </PageTabs>
       {children}
