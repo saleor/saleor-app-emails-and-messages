@@ -1,5 +1,5 @@
-import { CircularProgress, LinearProgress, Paper } from "@material-ui/core";
-import React, { useEffect, useMemo, useState } from "react";
+import { CircularProgress, Paper } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
 import { makeStyles } from "@saleor/macaw-ui";
 import { ConfigurationsList } from "../../../app-configuration/ui/configurations-list";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
@@ -97,8 +97,9 @@ export const SendgridConfigurationTab = () => {
   return (
     <AppColumnsLayout>
       <ConfigurationsList
-        configurations={configurationsListData}
-        activeConfigurationId={activeConfigurationId}
+        // TODO: FIXME
+        listItems={[]}
+        activeItemId={activeConfigurationId}
         onItemClick={setActiveConfigurationId}
       />
       <div className={styles.configurationColumn}>

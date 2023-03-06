@@ -14,7 +14,7 @@ const IndexPage: NextPage = () => {
 
   useEffect(() => {
     if (isMounted() && appBridgeState?.ready) {
-      replace("/configuration");
+      replace("/configuration/channels");
     }
   }, [isMounted, appBridgeState?.ready]);
 

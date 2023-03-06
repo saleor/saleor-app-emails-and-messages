@@ -1,15 +1,18 @@
-import { MjmlConfig, MjmlConfiguration } from "./mjml-config";
-import {
-  defaultInvoiceSentMjmlTemplate,
-  defaultOrderCancelledMjmlTemplate,
-  defaultOrderConfirmedMjmlTemplate,
-  defaultOrderCreatedMjmlTemplate,
-  defaultOrderFulfilledMjmlTemplate,
-  defaultOrderFullyPaidMjmlTemplate,
-} from "../default-templates";
+import { messageEventTypes } from "../../event-handlers/message-event-types";
+import { MjmlConfig as MjmlConfigurationRoot, MjmlConfiguration } from "./mjml-config";
+import { defaultMjmlTemplates, defaultMjmlSubjectTemplates } from "../default-templates";
 
-export const getDefaultEmptyMjmlConfiguration = (): MjmlConfiguration => {
-  const defaultConfig = {
+const getDefaultEventsConfiguration = (): MjmlConfiguration["events"] =>
+  messageEventTypes.map((eventType) => ({
+    active: true,
+    eventType: eventType,
+    template: defaultMjmlTemplates[eventType],
+    subject: defaultMjmlSubjectTemplates[eventType],
+  }));
+
+export const getDefaultEmptyConfiguration = (): MjmlConfiguration => {
+  const defaultConfig: MjmlConfiguration = {
+    id: "",
     active: true,
     configurationName: "",
     senderName: "",
@@ -17,53 +20,100 @@ export const getDefaultEmptyMjmlConfiguration = (): MjmlConfiguration => {
     smtpHost: "",
     smtpPort: "",
     smtpUser: "",
-    useTls: false,
-    useSsl: false,
-    templateInvoiceSentSubject: "Invoice sent",
-    templateInvoiceSentTemplate: defaultInvoiceSentMjmlTemplate,
-    templateOrderCancelledSubject: "Order Cancelled",
-    templateOrderCancelledTemplate: defaultOrderCancelledMjmlTemplate,
-    templateOrderConfirmedSubject: "Order Confirmed",
-    templateOrderConfirmedTemplate: defaultOrderConfirmedMjmlTemplate,
-    templateOrderFullyPaidSubject: "Order Fully Paid",
-    templateOrderFullyPaidTemplate: defaultOrderFullyPaidMjmlTemplate,
-    templateOrderCreatedSubject: "Order created",
-    templateOrderCreatedTemplate: defaultOrderCreatedMjmlTemplate,
-    templateOrderFulfilledSubject: "Order fulfilled",
-    templateOrderFulfilledTemplate: defaultOrderFulfilledMjmlTemplate,
+    encryption: "NONE",
+    events: getDefaultEventsConfiguration(),
   };
 
   return defaultConfig;
 };
 
-const getMjmlConfigurationById =
-  (mjmlConfig: MjmlConfig | null | undefined) => (configurationId?: string) => {
-    if (!configurationId?.length) {
-      return getDefaultEmptyMjmlConfiguration();
+interface GetConfigurationArgs {
+  id: string;
+}
+
+const getConfiguration =
+  (mjmlConfigRoot: MjmlConfigurationRoot | null | undefined) =>
+  ({ id }: GetConfigurationArgs) => {
+    if (!mjmlConfigRoot || !mjmlConfigRoot.configurations) {
+      return;
     }
-    const existingConfig = mjmlConfig?.availableConfigurations[configurationId];
-    if (!existingConfig) {
-      return getDefaultEmptyMjmlConfiguration();
-    }
-    return existingConfig;
+
+    return mjmlConfigRoot.configurations.find((c) => c.id === id);
   };
 
-const setMjmlConfigurationById =
-  (mjmlConfig: MjmlConfig | null | undefined) =>
-  (configurationId: string | undefined) =>
-  (mjmlConfiguration: MjmlConfiguration) => {
-    const mjmlConfigNormalized = structuredClone(mjmlConfig) ?? { availableConfigurations: {} };
+interface FilterConfigurationsArgs {
+  ids?: string[];
+  active?: boolean;
+}
+
+const getConfigurations =
+  (mjmlConfigRoot: MjmlConfigurationRoot | null | undefined) =>
+  ({ ids, active }: FilterConfigurationsArgs): MjmlConfiguration[] => {
+    if (!mjmlConfigRoot || !mjmlConfigRoot.configurations) {
+      return [];
+    }
+
+    let filtered = mjmlConfigRoot.configurations;
+
+    if (ids?.length) {
+      filtered = filtered.filter((c) => ids.includes(c.id));
+    }
+
+    if (active !== undefined) {
+      filtered = filtered.filter((c) => c.active === active);
+    }
+
+    return filtered;
+  };
+
+const createConfiguration =
+  (mjmlConfigRoot: MjmlConfigurationRoot | null | undefined) =>
+  (mjmlConfiguration: Omit<MjmlConfiguration, "id" | "events">) => {
+    const mjmlConfigNormalized = structuredClone(mjmlConfigRoot) ?? { configurations: [] };
 
     // for creating a new configurations, the ID has to be generated
-    const id = configurationId || Date.now();
-    mjmlConfigNormalized.availableConfigurations[id] ??= getDefaultEmptyMjmlConfiguration();
+    const newConfiguration = {
+      ...mjmlConfiguration,
+      id: Date.now().toString(),
+      events: getDefaultEventsConfiguration(),
+    };
+    mjmlConfigNormalized.configurations.unshift(newConfiguration);
+    return mjmlConfigNormalized;
+  };
 
-    mjmlConfigNormalized.availableConfigurations[id] = mjmlConfiguration;
+const updateConfiguration =
+  (mjmlConfig: MjmlConfigurationRoot | null | undefined) =>
+  (mjmlConfiguration: MjmlConfiguration) => {
+    const mjmlConfigNormalized = structuredClone(mjmlConfig) ?? { configurations: [] };
+
+    const configurationIndex = mjmlConfigNormalized.configurations.findIndex(
+      (configuration) => configuration.id === mjmlConfiguration.id
+    );
+
+    mjmlConfigNormalized.configurations[configurationIndex] = mjmlConfiguration;
+    return mjmlConfigNormalized;
+  };
+
+interface DeleteConfigurationArgs {
+  id: string;
+}
+
+const deleteConfiguration =
+  (mjmlConfig: MjmlConfigurationRoot | null | undefined) =>
+  ({ id }: DeleteConfigurationArgs) => {
+    const mjmlConfigNormalized = structuredClone(mjmlConfig) ?? { configurations: [] };
+
+    mjmlConfigNormalized.configurations = mjmlConfigNormalized.configurations.filter(
+      (configuration) => configuration.id !== id
+    );
 
     return mjmlConfigNormalized;
   };
 
 export const MjmlConfigContainer = {
-  getMjmlConfigurationById,
-  setMjmlConfigurationById,
+  createConfiguration,
+  getConfiguration,
+  updateConfiguration,
+  deleteConfiguration,
+  getConfigurations,
 };

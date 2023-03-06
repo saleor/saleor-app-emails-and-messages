@@ -9,13 +9,13 @@ const useStyles = makeStyles({
     gap: 32,
     maxWidth: 1180,
     margin: "0 auto",
-    padding: '50px 0',
+    padding: "20px 0",
   },
 });
 
-type Props = PropsWithChildren<{}>;
+type AppColumnsLayoutProps = PropsWithChildren<{}>;
 
-export const AppColumnsLayout = ({ children }: Props) => {
+export const AppColumnsLayout = ({ children }: AppColumnsLayoutProps) => {
   const styles = useStyles();
 
   return <div className={styles.root}>{children}</div>;

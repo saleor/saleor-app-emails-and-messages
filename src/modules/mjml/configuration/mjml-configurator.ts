@@ -20,7 +20,7 @@ export class PrivateMetadataMjmlConfigurator implements MjmlConfigurator {
       try {
         return JSON.parse(data);
       } catch (e) {
-        throw new Error("Invalid metadata value, cant be parsed");
+        throw new Error("Invalid metadata value, can't be parsed");
       }
     });
   }

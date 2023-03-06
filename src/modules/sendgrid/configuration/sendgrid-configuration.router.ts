@@ -18,7 +18,6 @@ export const sendgridConfigurationRouter = router({
     }).getConfiguration();
   }),
   setAndReplace: protectedClientProcedure
-    // TODO: Update the permissions required to change the sendgrid settings
     .meta({ requiredClientPermissions: ["MANAGE_APPS"] })
     .input(sendgridConfigInputSchema)
     .mutation(async ({ ctx, input }) => {

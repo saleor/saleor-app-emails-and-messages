@@ -2,10 +2,14 @@ import { NextWebhookApiHandler, SaleorAsyncWebhook } from "@saleor/app-sdk/handl
 import { gql } from "urql";
 import { saleorApp } from "../../../saleor-app";
 import { logger as pinoLogger } from "../../../lib/logger";
-import { InvoiceSentWebhookPayloadFragment } from "../../../../generated/graphql";
+import {
+  InvoiceSentWebhookPayloadFragment,
+  OrderDetailsFragmentDoc,
+} from "../../../../generated/graphql";
 import { sendEventMessages } from "../../../modules/event-handlers/send-event-messages";
 
 const InvoiceSentWebhookPayload = gql`
+  ${OrderDetailsFragmentDoc}
   fragment InvoiceSentWebhookPayload on InvoiceSent {
     invoice {
       id
@@ -17,16 +21,7 @@ const InvoiceSentWebhookPayload = gql`
       }
     }
     order {
-      channel {
-        slug
-        name
-      }
-      id
-      number
-      userEmail
-      user {
-        email
-      }
+      ...OrderDetails
     }
   }
 `;
@@ -81,7 +76,7 @@ const handler: NextWebhookApiHandler<InvoiceSentWebhookPayloadFragment> = async 
     authData,
     channel,
     event: "INVOICE_SENT",
-    payload: payload.order,
+    payload: { order: payload.order },
     recipientEmail,
   });
 

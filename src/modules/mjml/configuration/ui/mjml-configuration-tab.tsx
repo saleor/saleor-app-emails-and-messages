@@ -1,13 +1,17 @@
-import { CircularProgress, LinearProgress, Paper } from "@material-ui/core";
-import React, { useEffect, useMemo, useState } from "react";
-import { makeStyles } from "@saleor/macaw-ui";
-import { ConfigurationsList } from "../../../app-configuration/ui/configurations-list";
+import React from "react";
+import { IconButton, makeStyles } from "@saleor/macaw-ui";
 import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { AppColumnsLayout } from "../../../ui/app-columns-layout";
 import { trpcClient } from "../../../trpc/trpc-client";
 import { MjmlConfigurationForm } from "./mjml-configuration-form";
+import { getDefaultEmptyConfiguration } from "../mjml-config-container";
+import { NextRouter, useRouter } from "next/router";
+import { mjmlUrls } from "../../urls";
+import { MjmlTemplatesCard } from "./mjml-templates-card";
+import SideMenu from "../../../app-configuration/ui/side-menu";
 import { MjmlConfiguration } from "../mjml-config";
-import { MjmlConfigContainer, getDefaultEmptyMjmlConfiguration } from "../mjml-config-container";
+import { LoadingIndicator } from "../../../ui/loading-indicator";
+import { Add } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -22,94 +26,110 @@ const useStyles = makeStyles((theme) => {
       flexDirection: "column",
       gap: 20,
     },
-    loaderContainer: {
-      margin: "50px auto",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    },
   };
 });
 
-type Configurations = {
-  name: string;
-  id: string;
+interface MjmlConfigurationTabProps {
+  configurationId?: string;
+}
+
+const navigateToFirstConfiguration = (router: NextRouter, configurations?: MjmlConfiguration[]) => {
+  if (!configurations || !configurations?.length) {
+    router.replace(mjmlUrls.configuration());
+    return;
+  }
+  const firstConfigurationId = configurations[0]?.id;
+  if (firstConfigurationId) {
+    router.replace(mjmlUrls.configuration(firstConfigurationId));
+    return;
+  }
 };
 
-export const MjmlConfigurationTab = () => {
+export const MjmlConfigurationTab = ({ configurationId }: MjmlConfigurationTabProps) => {
   const styles = useStyles();
   const { appBridge } = useAppBridge();
-  const [configurationsListData, setConfigurationsListData] = useState<Configurations[]>([]);
-  const [activeConfigurationId, setActiveConfigurationId] = useState<string>();
-  const [initialData, setInitialData] = useState<MjmlConfiguration>();
+  const router = useRouter();
 
   const {
-    data: configurationData,
-    refetch: refetchConfig,
-    isLoading,
-  } = trpcClient.mjmlConfiguration.fetch.useQuery(undefined, {
-    onSuccess(data) {
-      const keys = Object.keys(data.availableConfigurations);
-      setConfigurationsListData(
-        keys.map((key) => ({ id: key, name: data.availableConfigurations[key].configurationName }))
-      );
-      setActiveConfigurationId(keys[0]);
-    },
-  });
+    data: configurations,
+    refetch: refetchConfigurations,
+    isLoading: configurationsIsLoading,
+  } = trpcClient.mjmlConfiguration.getConfigurations.useQuery(
+    {},
+    {
+      onSuccess(data) {
+        if (!configurationId) {
+          navigateToFirstConfiguration(router, data);
+        }
+      },
+    }
+  );
 
-  const { mutate, error: saveError } = trpcClient.mjmlConfiguration.setAndReplace.useMutation({
-    onSuccess() {
-      refetchConfig();
-      appBridge?.dispatch(
-        actions.Notification({
-          title: "Success",
-          text: "Saved configuration",
-          status: "success",
-        })
-      );
-    },
-  });
+  const { mutate: deleteConfiguration, error: deleteError } =
+    trpcClient.mjmlConfiguration.deleteConfiguration.useMutation({
+      onSuccess(data, variables) {
+        refetchConfigurations();
+        // if we just deleted the configuration that was selected
+        // we have to navigate to the first configuration
+        if (variables.id === configurationId) {
+          navigateToFirstConfiguration(router, configurations);
+        }
+        appBridge?.dispatch(
+          actions.Notification({
+            title: "Success",
+            text: "Removed successfully",
+            status: "success",
+          })
+        );
+      },
+    });
 
-  useEffect(() => {
-    setInitialData(
-      activeConfigurationId
-        ? MjmlConfigContainer.getMjmlConfigurationById(configurationData)(activeConfigurationId)
-        : getDefaultEmptyMjmlConfiguration()
-    );
-  }, [activeConfigurationId]);
+  if (configurationsIsLoading) {
+    return <LoadingIndicator />;
+  }
 
-  if (isLoading) {
-    return (
-      <div className={styles.loaderContainer}>
-        <CircularProgress color="primary" />
-      </div>
-    );
+  const configuration = configurations?.find((c) => c.id === configurationId?.toString());
+
+  if (configurationId && !configuration) {
+    return <div>Configuration not found</div>;
   }
 
   return (
     <AppColumnsLayout>
-      <ConfigurationsList
-        configurations={configurationsListData}
-        activeConfigurationId={activeConfigurationId}
-        onItemClick={setActiveConfigurationId}
+      <SideMenu
+        title="Configurations"
+        selectedItemId={configurationId}
+        headerToolbar={
+          <IconButton
+            variant="secondary"
+            onClick={() => {
+              router.replace(mjmlUrls.configuration());
+            }}
+          >
+            <Add />
+          </IconButton>
+        }
+        onClick={(id) => router.replace(mjmlUrls.configuration(id))}
+        onDelete={(id) => {
+          deleteConfiguration({ id });
+        }}
+        items={configurations?.map((c) => ({ label: c.configurationName, id: c.id })) || []}
       />
       <div className={styles.configurationColumn}>
-        <Paper elevation={0} className={styles.formContainer}>
-          {!!initialData && (
-            <MjmlConfigurationForm
-              onSubmit={async (data) => {
-                const newConfig =
-                  MjmlConfigContainer.setMjmlConfigurationById(configurationData)(
-                    activeConfigurationId
-                  )(data);
-                mutate(newConfig);
-              }}
-              initialData={initialData}
-              configurationId={activeConfigurationId}
-            />
-          )}
-          {saveError && <span>{saveError.message}</span>}
-        </Paper>
+        <MjmlConfigurationForm
+          onConfigurationSaved={() => refetchConfigurations()}
+          initialData={configuration || getDefaultEmptyConfiguration()}
+          configurationId={configurationId}
+        />
+        {!!configurationId && !!configuration && (
+          <MjmlTemplatesCard
+            configurationId={configurationId}
+            configuration={configuration}
+            onEventChanged={() => {
+              refetchConfigurations();
+            }}
+          />
+        )}
       </div>
     </AppColumnsLayout>
   );

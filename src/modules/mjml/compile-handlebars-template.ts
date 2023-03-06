@@ -1,22 +1,18 @@
 import Handlebars from "handlebars";
-import { convert } from "html-to-text";
 import { logger as pinoLogger } from "../../lib/logger";
 
 const logger = pinoLogger.child({
   fn: "compileHandlebarsTemplate",
 });
 
-export const compileHandlebarsTemplate = (html: string, variables: any) => {
-  logger.debug("Compiling HTML using handlebars templates");
+export const compileHandlebarsTemplate = (template: string, variables: any) => {
+  logger.debug("Compiling handlebars template");
   try {
-    const template = Handlebars.compile(html);
-    const htmlTemplate = template(variables);
-    // TODO: Investigate - some emails can not be converted to the plaintext
-    const plaintextTemplate = convert(htmlTemplate);
+    const templateDelegate = Handlebars.compile(template);
+    const htmlTemplate = templateDelegate(variables);
     logger.debug("Template successfully compiled");
     return {
-      htmlTemplate,
-      plaintextTemplate,
+      template: htmlTemplate,
     };
   } catch (error) {
     logger.error(error);

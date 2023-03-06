@@ -36,7 +36,7 @@ export const trpcClient = createTRPCNext<AppRouter>({
           },
         }),
       ],
-      // queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
+      queryClientConfig: { defaultOptions: { queries: { refetchOnWindowFocus: false } } },
     };
   },
   ssr: false,

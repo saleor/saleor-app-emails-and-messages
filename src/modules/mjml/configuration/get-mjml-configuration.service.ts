@@ -27,7 +27,7 @@ export class GetMjmlConfigurationService {
 
     const savedMjmlConfig = (await mjmlConfigurator.getConfig()) ?? null;
 
-    logger.debug(savedMjmlConfig, "Retrieved mjml config from Metadata. Will return it");
+    logger.debug(savedMjmlConfig, "Retrieved MJML config from Metadata. Will return it");
 
     if (savedMjmlConfig) {
       return savedMjmlConfig;
